@@ -4,19 +4,19 @@ import { Button, Card, Text } from 'react-native-paper';
 import { UserContext } from '../context/UserContext';
 
 const SEGMENTS = 8;
-const OPTIONS = [
-  { label: 'Aprobar', onPress: () => {} },
-  { label: 'Re-Aprobar', onPress: () => {} },
-  { label: 'Opción 3', onPress: () => {} },
-  { label: 'Opción 4', onPress: () => {} },
-  { label: 'Opción 5', onPress: () => {} },
-  { label: 'Opción 6', onPress: () => {} },
-  { label: 'Opción 7', onPress: () => {} },
-  { label: 'Opción 8', onPress: () => {} },
-];
 
 export default function MainMenuScreen({ navigation }) {
   const { nombreEmpleado } = useContext(UserContext);
+  const OPTIONS = [
+    { label: 'Aprobar', onPress: () => navigation.navigate('AprobarPagos') },
+    { label: 'Re-Aprobar', onPress: () => {} },
+    { label: 'Opción 3', onPress: () => {} },
+    { label: 'Opción 4', onPress: () => {} },
+    { label: 'Opción 5', onPress: () => {} },
+    { label: 'Opción 6', onPress: () => {} },
+    { label: 'Opción 7', onPress: () => {} },
+    { label: 'Opción 8', onPress: () => {} },
+  ];
   const handleLogout = () => {
     navigation.replace('Login');
   };

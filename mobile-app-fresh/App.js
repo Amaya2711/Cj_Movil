@@ -30,6 +30,7 @@ export default function App() {
           <Stack.Navigator initialRouteName="Login">
             <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
             <Stack.Screen name="MainMenu" component={MainMenuScreen} options={{ title: 'Menú Principal' }} />
+            <Stack.Screen name="AprobarPagos" component={require('./src/screens/AprobarPagosScreen').default} options={{ title: 'Aprobar pagos' }} />
           </Stack.Navigator>
         </NavigationContainer>
       </PaperProvider>
