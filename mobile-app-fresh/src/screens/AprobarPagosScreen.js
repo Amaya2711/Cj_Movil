@@ -9,6 +9,20 @@ import { TextInput, List } from 'react-native-paper';
 
 
 export default function AprobarPagosScreen() {
+    // DEBUG: Detectar claves duplicadas en resultados
+    React.useEffect(() => {
+      if (Array.isArray(resultados) && resultados.length > 0) {
+        const keyCount = {};
+        resultados.forEach((item, index) => {
+          const key = String(item.IdAprobacion || item.Id || `${item.FecIngreso}_${item.Solicitante}_${item.Total}_${index}`);
+          keyCount[key] = (keyCount[key] || 0) + 1;
+        });
+        const duplicados = Object.entries(keyCount).filter(([k, v]) => v > 1);
+        if (duplicados.length > 0) {
+          console.warn('Claves duplicadas detectadas en resultados:', duplicados.map(([k, v]) => ({ key: k, repeticiones: v })));
+        }
+      }
+    }, [resultados]);
   const [filtroSolicitante, setFiltroSolicitante] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [resultados, setResultados] = useState([]);
@@ -21,13 +35,13 @@ export default function AprobarPagosScreen() {
   useEffect(() => {
     // Al cargar la pantalla, consultar el backend y solicitantes
     cargarAprobaciones();
-    // Ejecutar la consulta de solicitantes pero no mostrar el resultado
-    cargarSolicitantes();
+    // Cargar todos los solicitantes al inicio (sin filtro)
+    cargarSolicitantes('');
   }, []);
 
-  const cargarSolicitantes = async () => {
+  const cargarSolicitantes = async (nombre = '') => {
     try {
-      const data = await getSolicitantes();
+      const data = await getSolicitantes(nombre);
       setSolicitantes(data);
     } catch (error) {
       setSolicitantes([]);
@@ -46,12 +60,28 @@ export default function AprobarPagosScreen() {
     setSeleccionados([]);
   };
 
-  const buscar = () => {
-    // Filtro local por solicitante, usando los datos originales
-    setResultados(resultadosOriginales.filter(r =>
-      !filtroSolicitante || (r.Solicitante && r.Solicitante.toLowerCase().includes(filtroSolicitante.toLowerCase()))
-    ));
+  const buscar = async () => {
+    // Limpiar resultados antes de buscar
+    setResultados([]);
+    setResultadosOriginales([]);
     setSeleccionados([]);
+    // Buscar el solicitante seleccionado
+    const seleccionado = solicitantes.find(s => String(s.NombreEmpleado) === filtroSolicitante);
+    let idSolicitante = 0;
+    if (seleccionado && seleccionado.IdEmpleado) {
+      idSolicitante = seleccionado.IdEmpleado;
+    } else {
+      alert('Solicitante no existe, mostrando todos los datos');
+    }
+    try {
+      const aprobaciones = await getAprobaciones(idSolicitante); // 0 muestra todos los datos
+      setResultados(Array.isArray(aprobaciones) ? aprobaciones : []);
+      setResultadosOriginales(Array.isArray(aprobaciones) ? aprobaciones : []);
+    } catch (error) {
+      setResultados([]);
+      setResultadosOriginales([]);
+    }
+    // ...los resultados en pantalla siempre serán los obtenidos en la búsqueda
   };
 
   // ...existing code...
@@ -72,14 +102,17 @@ export default function AprobarPagosScreen() {
         <TextInput
           label="Buscar solicitante"
           value={filtroSolicitante}
-          onChangeText={text => {
+          onChangeText={async text => {
             setFiltroSolicitante(text);
             setShowSuggestions(true);
+            // Consultar al backend usando el filtro
+            await cargarSolicitantes(text);
           }}
           onFocus={() => setShowSuggestions(true)}
           onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
           style={{ marginBottom: 8, backgroundColor: '#fff' }}
         />
+        {/* Etiqueta IdEmpleado eliminada por requerimiento */}
         {showSuggestions && filtroSolicitante.length > 0 && (
           <Card style={{ maxHeight: 200, marginBottom: 8 }}>
             {solicitantes.filter(s => typeof s.NombreEmpleado === 'string' && s.NombreEmpleado.toLowerCase().includes(filtroSolicitante.toLowerCase())).length === 0 ? (
@@ -98,11 +131,13 @@ export default function AprobarPagosScreen() {
             )}
           </Card>
         )}
+        {/*
         <Text style={{marginBottom: 8, color: solicitantes.length ? '#4CAF50' : '#F44336'}}>
           {solicitantes.length > 0
             ? `Solicitantes cargados: ${solicitantes.length}`
             : 'No se encontraron solicitantes.'}
         </Text>
+        */}
         <Button mode="contained" onPress={buscar}>Buscar</Button>
       </Card>
       {/* Pestañas para alternar entre todos y seleccionados */}
@@ -117,25 +152,30 @@ export default function AprobarPagosScreen() {
         </View>
         <FlatList
           data={tab === 'todos' ? resultados : resultados.filter((item, index) => {
-            const id = `${item.FecIngreso}_${item.Solicitante}_${item.Total}_${index}`;
-            return seleccionados.includes(id);
+            // Usar id único si existe, si no, combinar con el índice
+            const uniqueId = item.IdAprobacion || item.Id || `${item.FecIngreso}_${item.Solicitante}_${item.Total}_${index}`;
+            return seleccionados.includes(uniqueId);
           })}
-          keyExtractor={(item, index) => `${item.FecIngreso}_${item.Solicitante}_${item.Total}_${index}`}
+          keyExtractor={(item, index) => {
+            // Siempre usar el índice para garantizar unicidad
+            return String(item.IdAprobacion || item.Id || `${item.FecIngreso}_${item.Solicitante}_${item.Total}`) + '_' + index;
+          }}
           renderItem={({ item, index }) => {
             const safe = v => (v === undefined || v === null ? '' : String(v));
-            const id = `${safe(item.FecIngreso)}_${safe(item.Solicitante)}_${safe(item.Total)}_${index}`;
+            // Usar el mismo identificador único que keyExtractor
+            const uniqueId = item.IdAprobacion || item.Id || `${safe(item.FecIngreso)}_${safe(item.Solicitante)}_${safe(item.Total)}_${index}`;
             return (
               <View style={styles.tableRow}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                   <View style={styles.cellCheckbox}>
                     <Checkbox
-                      status={seleccionados.includes(id) ? 'checked' : 'unchecked'}
-                      onPress={() => toggleSeleccion(id)}
+                      status={seleccionados.includes(uniqueId) ? 'checked' : 'unchecked'}
+                      onPress={() => toggleSeleccion(uniqueId)}
                     />
                   </View>
                   <View style={{ flex: 1 }} /> {/* Espacio flexible para empujar el botón a la derecha */}
-                  <Button mode="text" style={[styles.expandButton, { alignSelf: 'flex-end' }]} onPress={() => toggleExpandido(id)}>
-                    <Text style={{color: '#2196F3'}}>{expandido[id] ? 'Cerrar detalle' : 'Ver detalle'}</Text>
+                  <Button mode="text" style={[styles.expandButton, { alignSelf: 'flex-end' }]} onPress={() => toggleExpandido(uniqueId)}>
+                    <Text style={{color: '#2196F3'}}>{expandido[uniqueId] ? 'Cerrar detalle' : 'Ver detalle'}</Text>
                   </Button>
                 </View>
                 <View style={[styles.cell, { flexDirection: 'row', alignItems: 'center' }]}> 
@@ -143,7 +183,7 @@ export default function AprobarPagosScreen() {
                   <Text><Text style={styles.cellLabel}>Total:</Text> {safe(item.Total)} {safe(item.Moneda)}</Text>
                 </View>
                 <View style={styles.cell}><Text><Text style={styles.cellLabel}>Solicitante:</Text> {safe(item.Solicitante)}</Text></View>
-                {expandido[id] && (
+                {expandido[uniqueId] && (
                   <View style={styles.detalleCard}>
                     <Text><Text style={styles.cellLabel}>Fec.Ing:</Text> {safe(item.FecIngreso)}</Text>
                     <Text><Text style={styles.cellLabel}>Detalle:</Text> {safe(item.Detalle)}</Text>

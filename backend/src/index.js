@@ -3,6 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import authRoutes from './routes/auth.js';
 import aprobacionRoutes from './routes/aprobacion.js';
+import solicitanteRoutes from './routes/solicitanteRoutes.js';
 
 dotenv.config();
 
@@ -13,7 +14,9 @@ app.use(express.json());
 
 
 app.use('/api/auth', authRoutes);
+
 app.use('/api/aprobaciones', aprobacionRoutes);
+app.use('/api', solicitanteRoutes);
 
 app.get('/', (req, res) => {
   res.send('API backend funcionando');

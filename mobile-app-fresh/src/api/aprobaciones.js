@@ -1,8 +1,13 @@
-import axios from 'axios';
 
-const API_URL = 'http://192.168.137.184:4000/api/aprobaciones'; // IP local de tu PC, asegúrate que sea accesible desde tu dispositivo
+const API_URL = 'http://192.168.137.184:4000/api/aprobaciones';
 
-export const getAprobaciones = async () => {
-  const res = await axios.get(API_URL);
-  return res.data;
+export const getAprobaciones = async (idSolicitante = '') => {
+  try {
+    const url = idSolicitante ? `${API_URL}?IdSolicitante=${encodeURIComponent(idSolicitante)}` : API_URL;
+    const response = await fetch(url);
+    if (!response.ok) throw new Error('Error al consultar aprobaciones');
+    return await response.json();
+  } catch (error) {
+    return [];
+  }
 };
