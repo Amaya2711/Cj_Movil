@@ -11,6 +11,7 @@ export default function AprobarPagosScreen() {
   const [resultados, setResultados] = useState([]);
   const [seleccionados, setSeleccionados] = useState([]); // array de ids seleccionados
   const [expandido, setExpandido] = useState({}); // control de expansión por registro
+  const [tab, setTab] = useState('todos'); // 'todos' | 'seleccionados'
 
   useEffect(() => {
     // Al cargar la pantalla, consultar el backend
@@ -58,13 +59,21 @@ export default function AprobarPagosScreen() {
         />
         <Button mode="contained" onPress={buscar}>Buscar</Button>
       </Card>
+      {/* Pestañas para alternar entre todos y seleccionados */}
+      <View style={styles.tabsContainer}>
+        <Button mode={tab === 'todos' ? 'contained' : 'outlined'} style={styles.tabButton} onPress={() => setTab('todos')} label="Todos" />
+        <Button mode={tab === 'seleccionados' ? 'contained' : 'outlined'} style={styles.tabButton} onPress={() => setTab('seleccionados')} label="Seleccionados" />
+      </View>
       <Card style={styles.resultadosCard}>
         <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'}}>
           <Text style={styles.seccionTitulo}>Resultados</Text>
-          <Text style={styles.cantidadRegistros}>{`Registros: ${Array.isArray(resultados) ? resultados.length : 0}`}</Text>
+          <Text style={styles.cantidadRegistros}>{`Registros: ${tab === 'todos' ? (Array.isArray(resultados) ? resultados.length : 0) : seleccionados.length}`}</Text>
         </View>
         <FlatList
-          data={resultados}
+          data={tab === 'todos' ? resultados : resultados.filter((item, index) => {
+            const id = `${item.FecIngreso}_${item.Solicitante}_${item.Total}_${index}`;
+            return seleccionados.includes(id);
+          })}
           keyExtractor={(item, index) => `${item.FecIngreso}_${item.Solicitante}_${item.Total}_${index}`}
           renderItem={({ item, index }) => {
             const id = `${item.FecIngreso}_${item.Solicitante}_${item.Total}_${index}`;
@@ -119,6 +128,17 @@ export default function AprobarPagosScreen() {
 }
 
 const styles = StyleSheet.create({
+    tabsContainer: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      marginBottom: 8,
+      gap: 8,
+    },
+    tabButton: {
+      marginHorizontal: 4,
+      borderRadius: 8,
+      minWidth: 120,
+    },
   container: {
     flex: 1,
     padding: 16,
