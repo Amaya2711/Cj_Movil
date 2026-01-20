@@ -61,8 +61,8 @@ export default function AprobarPagosScreen() {
       </Card>
       {/* Pestañas para alternar entre todos y seleccionados */}
       <View style={styles.tabsContainer}>
-        <Button mode={tab === 'todos' ? 'contained' : 'outlined'} style={styles.tabButton} onPress={() => setTab('todos')} label="Todos" />
-        <Button mode={tab === 'seleccionados' ? 'contained' : 'outlined'} style={styles.tabButton} onPress={() => setTab('seleccionados')} label="Seleccionados" />
+        <Button mode={tab === 'todos' ? 'contained' : 'outlined'} style={styles.tabButton} onPress={() => setTab('todos')}><Text style={{color: tab === 'todos' ? '#fff' : '#7B3FF2', textAlign: 'center'}}>Todos</Text></Button>
+        <Button mode={tab === 'seleccionados' ? 'contained' : 'outlined'} style={styles.tabButton} onPress={() => setTab('seleccionados')}><Text style={{color: tab === 'seleccionados' ? '#fff' : '#7B3FF2', textAlign: 'center'}}>Seleccionados</Text></Button>
       </View>
       <Card style={styles.resultadosCard}>
         <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'}}>
@@ -88,27 +88,27 @@ export default function AprobarPagosScreen() {
                   </View>
                   <View style={{ flex: 1 }} /> {/* Espacio flexible para empujar el botón a la derecha */}
                   <Button mode="text" style={[styles.expandButton, { alignSelf: 'flex-end' }]} onPress={() => toggleExpandido(id)}>
-                    {expandido[id] ? 'Cerrar detalle' : 'Ver detalle'}
+                    <Text style={{color: '#2196F3'}}>{expandido[id] ? 'Cerrar detalle' : 'Ver detalle'}</Text>
                   </Button>
                 </View>
                 <View style={[styles.cell, { flexDirection: 'row', alignItems: 'center' }]}> 
-                  <Text><Text style={styles.cellLabel}>Fec.Ing:</Text> {item.FecIngreso}</Text>
-                  <Text style={{ marginLeft: 12 }}><Text style={styles.cellLabel}>Total:</Text> {item.Total} {item.Moneda}</Text>
+                  <Text style={{marginRight: 12}}><Text style={styles.cellLabel}>Fec.Ing:</Text> {String(item.FecIngreso)}</Text>
+                  <Text><Text style={styles.cellLabel}>Total:</Text> {String(item.Total)} {String(item.Moneda)}</Text>
                 </View>
-                <View style={styles.cell}><Text><Text style={styles.cellLabel}>Solicitante:</Text> {item.Solicitante}</Text></View>
+                <View style={styles.cell}><Text><Text style={styles.cellLabel}>Solicitante:</Text> {String(item.Solicitante)}</Text></View>
                 {expandido[id] && (
                   <View style={styles.detalleCard}>
-                    <Text><Text style={styles.cellLabel}>Fec.Ing:</Text> {item.FecIngreso}</Text>
-                    <Text><Text style={styles.cellLabel}>Detalle:</Text> {item.Detalle}</Text>
-                    <Text><Text style={styles.cellLabel}>Bien/Servicio:</Text> {item.Bien}</Text>
-                    <Text><Text style={styles.cellLabel}>Comprobante:</Text> {item.Comprobante}</Text>
-                    <Text><Text style={styles.cellLabel}>Gestor:</Text> {item.Gestor}</Text>
-                    <Text><Text style={styles.cellLabel}>Proyecto:</Text> {item.nombreProyecto || ''}</Text>
-                    <Text><Text style={styles.cellLabel}>Site:</Text> {item.Site || ''}</Text>
-                    <Text><Text style={styles.cellLabel}>Subtotal:</Text> {item.Subtotal}</Text>
-                    <Text><Text style={styles.cellLabel}>IGV:</Text> {item.IGV}</Text>
-                    <Text><Text style={styles.cellLabel}>Estado:</Text> {item.EstadoPla || ''}</Text>
-                    <Text><Text style={styles.cellLabel}>Observación:</Text> {item.Observacion}</Text>
+                    <Text><Text style={styles.cellLabel}>Fec.Ing:</Text> {String(item.FecIngreso)}</Text>
+                    <Text><Text style={styles.cellLabel}>Detalle:</Text> {String(item.Detalle)}</Text>
+                    <Text><Text style={styles.cellLabel}>Bien/Servicio:</Text> {String(item.Bien)}</Text>
+                    <Text><Text style={styles.cellLabel}>Comprobante:</Text> {String(item.Comprobante)}</Text>
+                    <Text><Text style={styles.cellLabel}>Gestor:</Text> {String(item.Gestor)}</Text>
+                    <Text><Text style={styles.cellLabel}>Proyecto:</Text> {String(item.nombreProyecto || '')}</Text>
+                    <Text><Text style={styles.cellLabel}>Site:</Text> {String(item.Site || '')}</Text>
+                    <Text><Text style={styles.cellLabel}>Subtotal:</Text> {String(item.Subtotal)}</Text>
+                    <Text><Text style={styles.cellLabel}>IGV:</Text> {String(item.IGV)}</Text>
+                    <Text><Text style={styles.cellLabel}>Estado:</Text> {String(item.EstadoPla || '')}</Text>
+                    <Text><Text style={styles.cellLabel}>Observación:</Text> {String(item.Observacion)}</Text>
                   </View>
                 )}
               </View>
@@ -118,10 +118,10 @@ export default function AprobarPagosScreen() {
       </Card>
       {/* Botones de acción */}
       <View style={styles.actionButtonsContainer}>
-        <Button mode="contained" style={[styles.actionButton, { backgroundColor: '#4CAF50' }]} onPress={() => {}}>Aceptar</Button>
-        <Button mode="contained" style={[styles.actionButton, { backgroundColor: '#F44336' }]} onPress={() => {}}>Rechazar</Button>
-        <Button mode="contained" style={[styles.actionButton, { backgroundColor: '#FF9800' }]} onPress={() => {}}>Observar</Button>
-        <Button mode="contained" style={[styles.actionButton, { backgroundColor: '#2196F3' }]} onPress={() => {}}>Regularizar</Button>
+        <Button mode="contained" style={[styles.actionButton, { backgroundColor: '#4CAF50' }]} onPress={() => {}}><Text style={{color: '#fff', textAlign: 'center'}}>Aceptar</Text></Button>
+        <Button mode="contained" style={[styles.actionButton, { backgroundColor: '#F44336' }]} onPress={() => {}}><Text style={{color: '#fff', textAlign: 'center'}}>Rechazar</Text></Button>
+        <Button mode="contained" style={[styles.actionButton, { backgroundColor: '#FF9800' }]} onPress={() => {}}><Text style={{color: '#fff', textAlign: 'center'}}>Observar</Text></Button>
+        <Button mode="contained" style={[styles.actionButton, { backgroundColor: '#2196F3' }]} onPress={() => {}}><Text style={{color: '#fff', textAlign: 'center'}}>Regularizar</Text></Button>
       </View>
     </View>
   );
