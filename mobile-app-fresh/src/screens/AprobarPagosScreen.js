@@ -70,18 +70,23 @@ export default function AprobarPagosScreen() {
             const id = `${item.FecIngreso}_${item.Solicitante}_${item.Total}_${index}`;
             return (
               <View style={styles.tableRow}>
-                <View style={styles.cellCheckbox}>
-                  <Checkbox
-                    status={seleccionados.includes(id) ? 'checked' : 'unchecked'}
-                    onPress={() => toggleSeleccion(id)}
-                  />
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <View style={styles.cellCheckbox}>
+                    <Checkbox
+                      status={seleccionados.includes(id) ? 'checked' : 'unchecked'}
+                      onPress={() => toggleSeleccion(id)}
+                    />
+                  </View>
+                  <View style={{ flex: 1 }} /> {/* Espacio flexible para empujar el botón a la derecha */}
+                  <Button mode="text" style={[styles.expandButton, { alignSelf: 'flex-end' }]} onPress={() => toggleExpandido(id)}>
+                    {expandido[id] ? 'Cerrar detalle' : 'Ver detalle'}
+                  </Button>
                 </View>
-                <View style={styles.cell}><Text><Text style={styles.cellLabel}>Fec.Ing:</Text> {item.FecIngreso}</Text></View>
+                <View style={[styles.cell, { flexDirection: 'row', alignItems: 'center' }]}> 
+                  <Text><Text style={styles.cellLabel}>Fec.Ing:</Text> {item.FecIngreso}</Text>
+                  <Text style={{ marginLeft: 12 }}><Text style={styles.cellLabel}>Total:</Text> {item.Total} {item.Moneda}</Text>
+                </View>
                 <View style={styles.cell}><Text><Text style={styles.cellLabel}>Solicitante:</Text> {item.Solicitante}</Text></View>
-                <View style={styles.cell}><Text><Text style={styles.cellLabel}>Total:</Text> {item.Total} {item.Moneda}</Text></View>
-                <Button mode="text" style={styles.expandButton} onPress={() => toggleExpandido(id)}>
-                  {expandido[id] ? 'Cerrar detalle' : 'Ver detalle'}
-                </Button>
                 {expandido[id] && (
                   <View style={styles.detalleCard}>
                     <Text><Text style={styles.cellLabel}>Fec.Ing:</Text> {item.FecIngreso}</Text>
