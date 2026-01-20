@@ -26,7 +26,12 @@ export default function MainMenuScreen({ navigation }) {
       <View style={styles.grid}>
         {OPTIONS.slice(0, SEGMENTS).map((opt, idx) => (
           <View key={idx} style={styles.segment}>
-            <Button mode="contained" onPress={opt.onPress} style={styles.menuButton}>
+            <Button
+              mode="contained"
+              onPress={opt.onPress}
+              style={styles.menuButton}
+              disabled={idx > 1} // Solo los dos primeros botones activos
+            >
               {opt.label}
             </Button>
           </View>
