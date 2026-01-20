@@ -1,77 +1,114 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, FlatList } from 'react-native';
-import { Card, Checkbox } from 'react-native-paper';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TextInput, StyleSheet, FlatList } from 'react-native';
+import { Card, Checkbox, Button } from 'react-native-paper';
+import { getAprobaciones } from '../api/aprobaciones';
 
-const mockResults = [
-  { id: '1', folio: 'FOL123', beneficiario: 'Juan Pérez', monto: 1500, estatus: 'Pendiente' },
-  { id: '2', folio: 'FOL456', beneficiario: 'Ana López', monto: 2000, estatus: 'Pendiente' },
-];
+
 
 
 export default function AprobarPagosScreen() {
   const [filtroSolicitante, setFiltroSolicitante] = useState('');
-  const [resultados, setResultados] = useState(mockResults);
+  const [resultados, setResultados] = useState([]);
   const [seleccionados, setSeleccionados] = useState([]); // array de ids seleccionados
+  const [expandido, setExpandido] = useState({}); // control de expansión por registro
+
+  useEffect(() => {
+    // Al cargar la pantalla, consultar el backend
+    cargarAprobaciones();
+  }, []);
+
+  const cargarAprobaciones = async () => {
+    try {
+      const data = await getAprobaciones();
+      setResultados(data);
+    } catch (error) {
+      setResultados([]);
+    }
+    setSeleccionados([]);
+  };
 
   const buscar = () => {
-    // Aquí irá la lógica real de consulta a la base de datos
-    setResultados(mockResults.filter(r =>
-      (!filtroSolicitante || r.folio.includes(filtroSolicitante))
+    // Filtro local por solicitante
+    setResultados(prev => prev.filter(r =>
+      (!filtroSolicitante || (r.Solicitante && r.Solicitante.toLowerCase().includes(filtroSolicitante.toLowerCase())))
     ));
     setSeleccionados([]);
   };
 
-  const toggleSeleccion = (id) => {
-    setSeleccionados(prev =>
-      prev.includes(id) ? prev.filter(sid => sid !== id) : [...prev, id]
-    );
-  };
+  // ...existing code...
+
+   const toggleSeleccion = (id) => {
+     setSeleccionados(prev =>
+       prev.includes(id) ? prev.filter(sid => sid !== id) : [...prev, id]
+     );
+   };
+
+   const toggleExpandido = (id) => {
+     setExpandido(prev => ({ ...prev, [id]: !prev[id] }));
+   };
 
   return (
     <View style={styles.container}>
-      {/* <Text style={styles.titulo}>Aprobar pagos</Text> */}
       <Card style={styles.filtrosCard}>
-        <Text style={styles.seccionTitulo}>Filtros de búsqueda</Text>
         <TextInput
           style={styles.input}
           placeholder="Solicitante"
           value={filtroSolicitante}
           onChangeText={setFiltroSolicitante}
         />
-        <Button title="Buscar" onPress={buscar} />
+        <Button mode="contained" onPress={buscar}>Buscar</Button>
       </Card>
       <Card style={styles.resultadosCard}>
         <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'}}>
           <Text style={styles.seccionTitulo}>Resultados</Text>
-          <Text style={styles.cantidadRegistros}>{`Registros: ${resultados.length}`}</Text>
-        </View>
-        <View style={styles.tableHeader}>
-          <View style={styles.headerCellCheckbox}></View>
-          <Text style={styles.headerCell}>Folio</Text>
-          <Text style={styles.headerCell}>Beneficiario</Text>
-          <Text style={styles.headerCell}>Monto</Text>
-          <Text style={styles.headerCell}>Estatus</Text>
+          <Text style={styles.cantidadRegistros}>{`Registros: ${Array.isArray(resultados) ? resultados.length : 0}`}</Text>
         </View>
         <FlatList
           data={resultados}
-          keyExtractor={item => item.id}
-          renderItem={({ item }) => (
-            <View style={styles.tableRow}>
-              <View style={styles.cellCheckbox}>
-                <Checkbox
-                  status={seleccionados.includes(item.id) ? 'checked' : 'unchecked'}
-                  onPress={() => toggleSeleccion(item.id)}
-                />
+          keyExtractor={(item, index) => `${item.FecIngreso}_${item.Solicitante}_${item.Total}_${index}`}
+          renderItem={({ item, index }) => {
+            const id = `${item.FecIngreso}_${item.Solicitante}_${item.Total}_${index}`;
+            return (
+              <View style={styles.tableRow}>
+                <View style={styles.cellCheckbox}>
+                  <Checkbox
+                    status={seleccionados.includes(id) ? 'checked' : 'unchecked'}
+                    onPress={() => toggleSeleccion(id)}
+                  />
+                </View>
+                <View style={styles.cell}><Text><Text style={styles.cellLabel}>Fec.Ing:</Text> {item.FecIngreso}</Text></View>
+                <View style={styles.cell}><Text><Text style={styles.cellLabel}>Solicitante:</Text> {item.Solicitante}</Text></View>
+                <View style={styles.cell}><Text><Text style={styles.cellLabel}>Total:</Text> {item.Total} {item.Moneda}</Text></View>
+                <Button mode="text" style={styles.expandButton} onPress={() => toggleExpandido(id)}>
+                  {expandido[id] ? 'Cerrar detalle' : 'Ver detalle'}
+                </Button>
+                {expandido[id] && (
+                  <View style={styles.detalleCard}>
+                    <Text><Text style={styles.cellLabel}>Fec.Ing:</Text> {item.FecIngreso}</Text>
+                    <Text><Text style={styles.cellLabel}>Detalle:</Text> {item.Detalle}</Text>
+                    <Text><Text style={styles.cellLabel}>Bien/Servicio:</Text> {item.Bien}</Text>
+                    <Text><Text style={styles.cellLabel}>Comprobante:</Text> {item.Comprobante}</Text>
+                    <Text><Text style={styles.cellLabel}>Gestor:</Text> {item.Gestor}</Text>
+                    <Text><Text style={styles.cellLabel}>Proyecto:</Text> {item.nombreProyecto || ''}</Text>
+                    <Text><Text style={styles.cellLabel}>Site:</Text> {item.Site || ''}</Text>
+                    <Text><Text style={styles.cellLabel}>Subtotal:</Text> {item.Subtotal}</Text>
+                    <Text><Text style={styles.cellLabel}>IGV:</Text> {item.IGV}</Text>
+                    <Text><Text style={styles.cellLabel}>Estado:</Text> {item.EstadoPla || ''}</Text>
+                    <Text><Text style={styles.cellLabel}>Observación:</Text> {item.Observacion}</Text>
+                  </View>
+                )}
               </View>
-              <Text style={styles.cell}>{item.folio}</Text>
-              <Text style={styles.cell}>{item.beneficiario}</Text>
-              <Text style={styles.cell}>${item.monto}</Text>
-              <Text style={styles.cell}>{item.estatus}</Text>
-            </View>
-          )}
+            );
+          }}
         />
       </Card>
-      {/* Puedes agregar aquí un área de detalles para los seleccionados si lo deseas */}
+      {/* Botones de acción */}
+      <View style={styles.actionButtonsContainer}>
+        <Button mode="contained" style={[styles.actionButton, { backgroundColor: '#4CAF50' }]} onPress={() => {}}>Aceptar</Button>
+        <Button mode="contained" style={[styles.actionButton, { backgroundColor: '#F44336' }]} onPress={() => {}}>Rechazar</Button>
+        <Button mode="contained" style={[styles.actionButton, { backgroundColor: '#FF9800' }]} onPress={() => {}}>Observar</Button>
+        <Button mode="contained" style={[styles.actionButton, { backgroundColor: '#2196F3' }]} onPress={() => {}}>Regularizar</Button>
+      </View>
     </View>
   );
 }
@@ -110,13 +147,37 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     backgroundColor: '#fff',
   },
-  resultItem: {
-    padding: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+  cellLabel: {
+    fontWeight: 'bold',
+    color: '#7B3FF2',
+    marginRight: 4,
   },
   detalleCard: {
     padding: 12,
     backgroundColor: '#e3f2fd',
+    marginTop: 8,
+    borderRadius: 8,
+    elevation: 2,
+  },
+  expandButton: {
+    alignSelf: 'flex-end',
+    marginVertical: 4,
+  },
+  actionButtonsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 16,
+    marginBottom: 8,
+    gap: 8,
+    width: '100%',
+  },
+  actionButton: {
+    flex: 1,
+    marginHorizontal: 2,
+    minWidth: 0,
+    borderRadius: 8,
+    paddingVertical: 6,
+    maxWidth: '25%',
   },
 });
