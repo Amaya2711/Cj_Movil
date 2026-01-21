@@ -14,7 +14,7 @@
     "react-native-screens": "~4.16.0"
   },
   "scripts": {
-    "vercel-build": "npx expo export"
+    "vercel-build": "npx --no-install expo export"
   },
   "devDependencies": {
     "@react-native-community/cli": "latest"
