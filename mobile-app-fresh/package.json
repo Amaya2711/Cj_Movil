@@ -11,8 +11,10 @@
     "react-native-chart-kit": "^6.12.0",
     "react-native-paper": "^5.10.0",
     "react-native-safe-area-context": "~5.6.0",
-    "react-native-screens": "~4.16.0",
-    "react-native-web": "^0.21.2"
+    "react-native-screens": "~4.16.0"
+  },
+  "scripts": {
+    "vercel-build": "expo export"
   },
   "devDependencies": {
     "@react-native-community/cli": "latest"
