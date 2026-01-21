@@ -1,0 +1,20 @@
+{
+  "expo": {
+    "name": "mobile-app-fresh",
+    "slug": "mobile-app-fresh",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "platforms": ["android", "ios", "web"],
+    "entryPoint": "index.js"
+  }
+}
