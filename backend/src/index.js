@@ -22,7 +22,7 @@ app.get('/', (req, res) => {
   res.send('API backend funcionando');
 });
 
-const PORT = process.env.PORT || 4000;
+const PORT = process.env.PORT;
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Servidor backend escuchando en puerto ${PORT} (0.0.0.0)`);
 });

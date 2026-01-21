@@ -5,8 +5,8 @@ import axios from 'axios';
 import CJTelecomLogo from '../../assets/logo.png';
 import { UserContext } from '../context/UserContext';
 
-// Cambia esta IP por la IP local de tu PC
-const API_URL = 'http://192.168.137.184:4000/api/auth/login';
+// URL pública del backend en Railway
+const API_URL = 'https://cjmovil-production.up.railway.app/api/auth/login';
 
 export default function LoginScreen({ navigation }) {
   const [usuario, setUsuario] = useState('');
