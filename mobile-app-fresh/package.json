@@ -14,11 +14,10 @@
     "react-native-screens": "~4.16.0"
   },
   "scripts": {
-    "vercel-build": "expo export"
+    "vercel-build": "npx expo export"
   },
   "devDependencies": {
-    "@react-native-community/cli": "latest",
-    "expo-cli": "^6.3.0"
+    "@react-native-community/cli": "latest"
   },
   "engines": {
     "node": "24.x"
