@@ -14,7 +14,6 @@
     "assetBundlePatterns": [
       "**/*"
     ],
-    "platforms": ["android", "ios", "web"],
-    "entryPoint": "index.js"
+    "platforms": ["android", "ios", "web"]
   }
 }
