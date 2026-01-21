@@ -19,5 +19,8 @@
   "devDependencies": {
     "@react-native-community/cli": "latest",
     "expo-cli": "^6.3.0"
+  },
+  "engines": {
+    "node": "16.x"
   }
 }
