@@ -2,6 +2,8 @@ import sql from 'mssql';
 import dotenv from 'dotenv';
 dotenv.config();
 
+console.log('SQLSERVER_HOST en mssql.js:', process.env.SQLSERVER_HOST);
+
 const config = {
   user: process.env.SQLSERVER_USER,
   password: process.env.SQLSERVER_PASSWORD,
