@@ -17,6 +17,7 @@
     "vercel-build": "expo export"
   },
   "devDependencies": {
-    "@react-native-community/cli": "latest"
+    "@react-native-community/cli": "latest",
+    "expo-cli": "^6.3.0"
   }
 }
