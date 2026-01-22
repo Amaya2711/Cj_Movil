@@ -6,30 +6,23 @@ const path = require('path');
 // Fuente original y nombre con hash que busca el build
 
 
-// Hash que busca el frontend (ajusta si cambia en el futuro)
-const hash = '6e435534bd35da5fef04168860a9b8fa';
+// Copia todos los archivos MaterialCommunityIcons.*.ttf generados por Expo export
+const glob = require('glob');
+const distFontsDir = path.join(__dirname, '../dist/assets/node_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts');
+const publicFontsDir = path.join(__dirname, '../public/assets/fonts');
 
-const fontsToCopy = [
-  // Copia la fuente original renombrada con hash a una ruta pública segura
-  {
-    src: 'MaterialCommunityIcons.ttf',
-    dest: `../public/assets/fonts/MaterialCommunityIcons.${hash}.ttf`,
-  },
-];
+if (!fs.existsSync(publicFontsDir)) {
+  fs.mkdirSync(publicFontsDir, { recursive: true });
+}
 
-const srcDir = path.join(__dirname, '../node_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts');
-
-fontsToCopy.forEach(fontObj => {
-  const src = path.join(srcDir, fontObj.src);
-  const dest = path.join(__dirname, fontObj.dest);
-  const destDir = path.dirname(dest);
-  if (!fs.existsSync(destDir)) {
-    fs.mkdirSync(destDir, { recursive: true });
-  }
-  if (fs.existsSync(src)) {
+const files = glob.sync('MaterialCommunityIcons.*.ttf', { cwd: distFontsDir });
+if (files.length === 0) {
+  console.warn('No se encontraron archivos MaterialCommunityIcons.*.ttf en dist.');
+} else {
+  files.forEach(file => {
+    const src = path.join(distFontsDir, file);
+    const dest = path.join(publicFontsDir, file);
     fs.copyFileSync(src, dest);
-    console.log(`Copiado: ${fontObj.src} como ${dest}`);
-  } else {
-    console.warn(`No encontrado: ${fontObj.src}`);
-  }
-});
+    console.log(`Copiado: ${file} a ${dest}`);
+  });
+}
