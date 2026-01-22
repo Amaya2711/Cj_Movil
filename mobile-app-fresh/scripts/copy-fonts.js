@@ -7,7 +7,7 @@ const path = require('path');
 const fontsToCopy = [
   {
     src: 'MaterialCommunityIcons.ttf',
-    dest: 'MaterialCommunityIcons.6e435534bd35da5fef04168860a9b8fa.ttf',
+    dest: 'MaterialCommunityIcons.4168860a9b8fa.ttf',
   },
   // Puedes agregar más fuentes aquí si las necesitas
 ];
