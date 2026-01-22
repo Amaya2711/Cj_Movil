@@ -1,5 +1,6 @@
 
-const API_URL = 'http://192.168.137.184:4000/api/aprobaciones';
+// const API_URL = 'http://192.168.137.184/api/aprobaciones'; // Ruta local para desarrollo
+const API_URL = 'https://cjmovil-production.up.railway.app/api/aprobaciones'; // URL pública de Railway
 
 export const getAprobaciones = async (idSolicitante = '') => {
   try {

@@ -1,5 +1,6 @@
 
-const API_URL = 'http://192.168.137.184:4000/api/solicitantes'; // Ajusta la URL según tu backend
+// const API_URL = 'http://192.168.137.184:4000/api/solicitantes'; // Ruta local para desarrollo
+const API_URL = 'https://cjmovil-production.up.railway.app/api/solicitantes'; // URL pública de Railway
 
 export const getSolicitantes = async (nombre = '') => {
   try {
