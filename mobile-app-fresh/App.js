@@ -31,16 +31,20 @@ export default function App() {
 
   useEffect(() => {
     async function loadFonts() {
-      if (Platform.OS === 'web') {
-        await Font.loadAsync({
-          MaterialCommunityIcons: '/fonts/MaterialCommunityIcons.ttf',
-        });
-      } else {
-        await Font.loadAsync({
-          ...MaterialCommunityIcons.font,
-        });
+      try {
+        if (Platform.OS === 'web') {
+          await Font.loadAsync({
+            MaterialCommunityIcons: '/fonts/MaterialCommunityIcons.ttf',
+          });
+        } else {
+          await Font.loadAsync({
+            ...MaterialCommunityIcons.font,
+          });
+        }
+        setFontsLoaded(true);
+      } catch (err) {
+        console.error('Error cargando fuentes:', err);
       }
-      setFontsLoaded(true);
     }
     loadFonts();
   }, []);
