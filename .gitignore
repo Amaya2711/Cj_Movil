@@ -1,6 +1,13 @@
 # Ignorar dependencias y archivos generados
 node_modules/
 .expo/
+!/mobile-app-fresh/public/assets/
 !/mobile-app-fresh/public/assets/node_modules/
+!/mobile-app-fresh/public/assets/node_modules/@expo/
+!/mobile-app-fresh/public/assets/node_modules/@expo/vector-icons/
+!/mobile-app-fresh/public/assets/node_modules/@expo/vector-icons/build/
+!/mobile-app-fresh/public/assets/node_modules/@expo/vector-icons/build/vendor/
+!/mobile-app-fresh/public/assets/node_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/
+!/mobile-app-fresh/public/assets/node_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/
 .expo/
 package-lock.json
