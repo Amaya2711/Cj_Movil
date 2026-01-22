@@ -31,7 +31,16 @@ export default function LoginScreen({ navigation }) {
         navigation.replace('MainMenu');
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Error de conexión');
+      let errorMsg = '';
+      if (err.response) {
+        errorMsg = `Error de respuesta: ${err.response.status} - ${err.response.data?.message || JSON.stringify(err.response.data)}`;
+      } else if (err.request) {
+        errorMsg = 'No se recibió respuesta del servidor. Verifica tu conexión.';
+      } else {
+        errorMsg = `Error: ${err.message}`;
+      }
+      setError(errorMsg);
+      console.error('Login error:', err);
     } finally {
       setLoading(false);
     }
