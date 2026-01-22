@@ -2,7 +2,10 @@ import React, { useState, useContext } from 'react';
 import { View, StyleSheet, Image } from 'react-native';
 import { TextInput, Button, Text, Card, Snackbar } from 'react-native-paper';
 import axios from 'axios';
-import CJTelecomLogo from '../../assets/logo.png';
+import { Platform } from 'react-native';
+const CJTelecomLogo = Platform.OS === 'web'
+  ? { uri: '/assets/logo.png' }
+  : require('../../assets/logo.png');
 import { UserContext } from '../context/UserContext';
 
 // URL pública del backend en Railway
