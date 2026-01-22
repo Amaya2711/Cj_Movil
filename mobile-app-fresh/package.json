@@ -12,12 +12,15 @@
     "react-native-chart-kit": "^6.12.0",
     "react-native-paper": "^5.10.0",
     "react-native-safe-area-context": "~5.6.0",
-    "react-native-screens": "~4.16.0"
+    "react-native-screens": "~4.16.0",
+    "react-native-web": "^0.21.2"
   },
   "scripts": {
     "copy-fonts": "node scripts/copy-fonts.js",
     "check-font": "node scripts/check-font.js",
-    "vercel-build": "npm run copy-fonts && npm run check-font && npx --no-install expo export"
+    "export": "expo export",
+    "postexport": "npm run copy-fonts",
+    "vercel-build": "npx --no-install expo export && npm run copy-fonts && npm run check-font"
   },
   "devDependencies": {
     "@react-native-community/cli": "latest"

@@ -9,12 +9,18 @@ const path = require('path');
 // Copia todos los archivos MaterialCommunityIcons.*.ttf generados por Expo export
 const glob = require('glob');
 const distFontsDir = path.join(__dirname, '../dist/assets/node_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts');
-const publicFontsDir = path.join(__dirname, '../public/assets/fonts');
+const publicFontsDir = path.join(__dirname, '../public/assets/node_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts');
 
 if (!fs.existsSync(publicFontsDir)) {
   fs.mkdirSync(publicFontsDir, { recursive: true });
 }
 
+// Limpiar fuentes viejas
+glob.sync('MaterialCommunityIcons.*.ttf', { cwd: publicFontsDir }).forEach(file => {
+  fs.unlinkSync(path.join(publicFontsDir, file));
+});
+
+// Copiar nuevas fuentes
 const files = glob.sync('MaterialCommunityIcons.*.ttf', { cwd: distFontsDir });
 if (files.length === 0) {
   console.warn('No se encontraron archivos MaterialCommunityIcons.*.ttf en dist.');
