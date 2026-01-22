@@ -20,7 +20,8 @@
     "check-font": "node scripts/check-font.js",
     "export": "expo export",
     "postexport": "npm run copy-fonts",
-    "vercel-build": "npx --no-install expo export && npm run copy-fonts && npm run check-font"
+    "vercel-build": "npx --no-install expo export && npm run copy-fonts && npm run check-font",
+    "publish-fonts": "node scripts/publish-fonts.js"
   },
   "devDependencies": {
     "@react-native-community/cli": "latest"
