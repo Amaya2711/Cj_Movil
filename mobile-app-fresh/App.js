@@ -1,4 +1,7 @@
 import * as React from 'react';
+import { useEffect, useState } from 'react';
+import * as Font from 'expo-font';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Provider as PaperProvider, DefaultTheme } from 'react-native-paper';
@@ -23,6 +26,23 @@ const theme = {
 };
 
 export default function App() {
+  const [fontsLoaded, setFontsLoaded] = useState(false);
+
+  useEffect(() => {
+    async function loadFonts() {
+      await Font.loadAsync({
+        ...MaterialCommunityIcons.font,
+        'MaterialCommunityIcons': require('./public/assets/fonts/MaterialCommunityIcons.6e435534bd35da5fef04168860a9b8fa.ttf'),
+      });
+      setFontsLoaded(true);
+    }
+    loadFonts();
+  }, []);
+
+  if (!fontsLoaded) {
+    return null; // O un componente de carga/spinner
+  }
+
   return (
     <UserProvider>
       <PaperProvider theme={theme}>
