@@ -2,6 +2,7 @@ import * as React from 'react';
 import { useEffect, useState } from 'react';
 import * as Font from 'expo-font';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { Platform } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Provider as PaperProvider, DefaultTheme } from 'react-native-paper';
@@ -30,10 +31,15 @@ export default function App() {
 
   useEffect(() => {
     async function loadFonts() {
-      await Font.loadAsync({
-        ...MaterialCommunityIcons.font,
-        'MaterialCommunityIcons': require('./public/assets/fonts/MaterialCommunityIcons.6e435534bd35da5fef04168860a9b8fa.ttf'),
-      });
+      if (Platform.OS === 'web') {
+        await Font.loadAsync({
+          MaterialCommunityIcons: '/fonts/MaterialCommunityIcons.ttf',
+        });
+      } else {
+        await Font.loadAsync({
+          ...MaterialCommunityIcons.font,
+        });
+      }
       setFontsLoaded(true);
     }
     loadFonts();

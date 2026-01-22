@@ -14,7 +14,8 @@
     "react-native-screens": "~4.16.0"
   },
   "scripts": {
-    "vercel-build": "npx --no-install expo export"
+    "copy-fonts": "node scripts/copy-fonts.js",
+    "vercel-build": "npm run copy-fonts && npx --no-install expo export"
   },
   "devDependencies": {
     "@react-native-community/cli": "latest"
