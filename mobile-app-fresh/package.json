@@ -15,7 +15,8 @@
   },
   "scripts": {
     "copy-fonts": "node scripts/copy-fonts.js",
-    "vercel-build": "npm run copy-fonts && npx --no-install expo export"
+    "check-font": "node scripts/check-font.js",
+    "vercel-build": "npm run copy-fonts && npm run check-font && npx --no-install expo export"
   },
   "devDependencies": {
     "@react-native-community/cli": "latest"
