@@ -8,22 +8,9 @@ import { TextInput, List } from 'react-native-paper';
 
 
 
+
 export default function AprobarPagosScreen() {
   console.log('AprobarPagosScreen montado');
-    // DEBUG: Detectar claves duplicadas en resultados
-    React.useEffect(() => {
-      if (Array.isArray(resultados) && resultados.length > 0) {
-        const keyCount = {};
-        resultados.forEach((item, index) => {
-          const key = String(item.IdAprobacion || item.Id || `${item.FecIngreso}_${item.Solicitante}_${item.Total}_${index}`);
-          keyCount[key] = (keyCount[key] || 0) + 1;
-        });
-        const duplicados = Object.entries(keyCount).filter(([k, v]) => v > 1);
-        if (duplicados.length > 0) {
-          console.warn('Claves duplicadas detectadas en resultados:', duplicados.map(([k, v]) => ({ key: k, repeticiones: v })));
-        }
-      }
-    }, [resultados]);
   const [filtroSolicitante, setFiltroSolicitante] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [resultados, setResultados] = useState([]);
@@ -32,6 +19,21 @@ export default function AprobarPagosScreen() {
   const [expandido, setExpandido] = useState({}); // control de expansión por registro
   const [tab, setTab] = useState('todos'); // 'todos' | 'seleccionados'
   const [solicitantes, setSolicitantes] = useState([]);
+
+  // DEBUG: Detectar claves duplicadas en resultados
+  useEffect(() => {
+    if (Array.isArray(resultados) && resultados.length > 0) {
+      const keyCount = {};
+      resultados.forEach((item, index) => {
+        const key = String(item.IdAprobacion || item.Id || `${item.FecIngreso}_${item.Solicitante}_${item.Total}_${index}`);
+        keyCount[key] = (keyCount[key] || 0) + 1;
+      });
+      const duplicados = Object.entries(keyCount).filter(([k, v]) => v > 1);
+      if (duplicados.length > 0) {
+        console.warn('Claves duplicadas detectadas en resultados:', duplicados.map(([k, v]) => ({ key: k, repeticiones: v })));
+      }
+    }
+  }, [resultados]);
 
   useEffect(() => {
     // Al cargar la pantalla, consultar el backend y solicitantes
