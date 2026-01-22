@@ -4,11 +4,15 @@ const path = require('path');
 
 
 // Fuente original y nombre con hash que busca el build
+
+// Hash que busca el frontend (ajusta si cambia en el futuro)
+const hash = '6e435534bd35da5fef04168860a9b8fa';
+
 const fontsToCopy = [
-  // Copia la fuente con hash a la ruta exacta que Expo export busca en producción
+  // Copia la fuente original renombrada con hash a la ruta exacta que Expo export busca en producción
   {
-    src: 'MaterialCommunityIcons.6e435534bd35da5fef04168860a9b8fa.ttf',
-    dest: '../public/assets/node_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/MaterialCommunityIcons.6e435534bd35da5fef04168860a9b8fa.ttf',
+    src: 'MaterialCommunityIcons.ttf',
+    dest: `../public/assets/node_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/MaterialCommunityIcons.${hash}.ttf`,
   },
   // Opcional: copia la fuente original a public/fonts por compatibilidad
   {
