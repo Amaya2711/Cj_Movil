@@ -5,34 +5,30 @@ const path = require('path');
 
 // Fuente original y nombre con hash que busca el build
 const fontsToCopy = [
-  {
-    src: 'MaterialCommunityIcons.ttf',
-    dest: 'MaterialCommunityIcons.ttf',
-  },
-  {
-    src: 'MaterialCommunityIcons.ttf',
-    dest: 'MaterialCommunityIcons.4168860a9b8fa.ttf',
-  },
+  // Copia la fuente con hash a la ruta exacta que Expo export busca en producción
   {
     src: 'MaterialCommunityIcons.6e435534bd35da5fef04168860a9b8fa.ttf',
-    dest: 'MaterialCommunityIcons.6e435534bd35da5fef04168860a9b8fa.ttf',
+    dest: '../public/assets/node_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/MaterialCommunityIcons.6e435534bd35da5fef04168860a9b8fa.ttf',
   },
-  // Puedes agregar más fuentes aquí si las necesitas
+  // Opcional: copia la fuente original a public/fonts por compatibilidad
+  {
+    src: 'MaterialCommunityIcons.ttf',
+    dest: '../public/fonts/MaterialCommunityIcons.ttf',
+  },
 ];
 
 const srcDir = path.join(__dirname, '../node_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts');
-const destDir = path.join(__dirname, '../public/fonts');
-
-if (!fs.existsSync(destDir)) {
-  fs.mkdirSync(destDir, { recursive: true });
-}
 
 fontsToCopy.forEach(fontObj => {
   const src = path.join(srcDir, fontObj.src);
-  const dest = path.join(destDir, fontObj.dest);
+  const dest = path.join(__dirname, fontObj.dest);
+  const destDir = path.dirname(dest);
+  if (!fs.existsSync(destDir)) {
+    fs.mkdirSync(destDir, { recursive: true });
+  }
   if (fs.existsSync(src)) {
     fs.copyFileSync(src, dest);
-    console.log(`Copiado: ${fontObj.src} como ${fontObj.dest}`);
+    console.log(`Copiado: ${fontObj.src} como ${dest}`);
   } else {
     console.warn(`No encontrado: ${fontObj.src}`);
   }
