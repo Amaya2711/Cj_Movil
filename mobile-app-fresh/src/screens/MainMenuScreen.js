@@ -8,7 +8,7 @@ const SEGMENTS = 8;
 export default function MainMenuScreen({ navigation }) {
   const { nombreEmpleado } = useContext(UserContext);
   const OPTIONS = [
-    { label: 'Aprobar', onPress: () => navigation.navigate('AprobarPagos') },
+    { label: 'Aprobar', onPress: () => { console.log('Botón Aprobar presionado'); navigation.navigate('AprobarPagos'); } },
     { label: 'Re-Aprobar', onPress: () => {} },
     { label: 'Opción 3', onPress: () => {} },
     { label: 'Opción 4', onPress: () => {} },

@@ -9,6 +9,7 @@ import { TextInput, List } from 'react-native-paper';
 
 
 export default function AprobarPagosScreen() {
+  console.log('AprobarPagosScreen montado');
     // DEBUG: Detectar claves duplicadas en resultados
     React.useEffect(() => {
       if (Array.isArray(resultados) && resultados.length > 0) {
