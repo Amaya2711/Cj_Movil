@@ -36,6 +36,8 @@ export default function LoginScreen({ navigation }) {
       setLoading(false);
     }
   };
+  // Ejemplo de animación con useNativeDriver: false
+  // Animated.timing(valorAnimado, { toValue: 1, duration: 500, useNativeDriver: false });
 
   return (
     <View style={styles.container}>
