@@ -13,6 +13,7 @@ const destDirs = [
 
 // Copiar fuentes si existen
 if (fs.existsSync(sourceDir)) {
+  let ttfFiles = [];
   destDirs.forEach(destDir => {
     if (!fs.existsSync(destDir)) {
       fs.mkdirSync(destDir, { recursive: true });
@@ -20,10 +21,18 @@ if (fs.existsSync(sourceDir)) {
     fs.readdirSync(sourceDir).forEach(file => {
       if (file.endsWith('.ttf')) {
         fs.copyFileSync(path.join(sourceDir, file), path.join(destDir, file));
+        ttfFiles.push(file);
       }
     });
     console.log(`Fuentes copiadas a ${destDir}`);
   });
+  if (ttfFiles.length > 0) {
+    console.log('\nArchivos .ttf copiados:');
+    ttfFiles.forEach(f => console.log(' - ' + f));
+    console.log(`\nUsa la ruta /assets/Fonts/${ttfFiles[0]} en App.js para cargar la fuente en web.`);
+  } else {
+    console.warn('No se encontraron archivos .ttf para copiar.');
+  }
 } else {
   console.warn('No se encontró la carpeta de fuentes en node_modules. ¿Ejecutaste npm install?');
 }
@@ -31,7 +40,7 @@ if (fs.existsSync(sourceDir)) {
 try {
   // execSync('npm run export', { stdio: 'inherit' }); // Eliminado porque no existe el script
   // Agrega archivos de fuente y también el propio script si cambió
-  execSync('git add -f public/assets/Fonts/*.ttf', { stdio: 'inherit' });
+  // execSync('git add -f public/assets/Fonts/*.ttf', { stdio: 'inherit' }); // Eliminado porque no es necesario
   execSync('git add scripts/publish-fonts.js', { stdio: 'inherit' });
   // Intenta hacer commit solo si hay cambios
   execSync(`git commit -m "${message}"`, { stdio: 'inherit' });
