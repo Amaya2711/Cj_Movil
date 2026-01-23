@@ -1,11 +1,32 @@
 const { execSync } = require('child_process');
+const fs = require('fs');
+const path = require('path');
 
 const message = process.env.npm_config_message || "Incluyo fuentes de iconos para producción";
+
+// Ruta origen y destino de las fuentes
+const sourceDir = path.join(__dirname, '../node_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts');
+const destDir = path.join(__dirname, '../public/assets/Fonts');
+
+// Copiar fuentes si existen
+if (fs.existsSync(sourceDir)) {
+  if (!fs.existsSync(destDir)) {
+    fs.mkdirSync(destDir, { recursive: true });
+  }
+  fs.readdirSync(sourceDir).forEach(file => {
+    if (file.endsWith('.ttf')) {
+      fs.copyFileSync(path.join(sourceDir, file), path.join(destDir, file));
+    }
+  });
+  console.log('Fuentes copiadas a /public/assets/Fonts/');
+} else {
+  console.warn('No se encontró la carpeta de fuentes en node_modules. ¿Ejecutaste npm install?');
+}
 
 try {
   execSync('npm run export', { stdio: 'inherit' });
   // Agrega archivos de fuente y también el propio script si cambió
-  execSync('git add -f public/assets/node_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/*.ttf', { stdio: 'inherit' });
+  execSync('git add -f public/assets/Fonts/*.ttf', { stdio: 'inherit' });
   execSync('git add scripts/publish-fonts.js', { stdio: 'inherit' });
   // Intenta hacer commit solo si hay cambios
   execSync(`git commit -m "${message}"`, { stdio: 'inherit' });
