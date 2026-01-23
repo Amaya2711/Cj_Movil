@@ -32,10 +32,10 @@ export default function App() {
   useEffect(() => {
     async function loadFonts() {
       try {
-          if (Platform.OS === 'web') {
-            await Font.loadAsync({
-              MaterialCommunityIcons: '/assets/fonts/MaterialCommunityIcons.6e435534bd35da5fef04168860a9b8fa.ttf',
-            });
+            if (Platform.OS === 'web') {
+              await Font.loadAsync({
+                MaterialCommunityIcons: '/assets/fonts/MaterialCommunityIcons.ttf',
+              });
           } else {
             await Font.loadAsync({
               ...MaterialCommunityIcons.font,

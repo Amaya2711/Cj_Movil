@@ -8,6 +8,14 @@ node_modules/
 !/mobile-app-fresh/public/assets/node_modules/@expo/vector-icons/build/
 !/mobile-app-fresh/public/assets/node_modules/@expo/vector-icons/build/vendor/
 !/mobile-app-fresh/public/assets/node_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/
-!/mobile-app-fresh/public/assets/node_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/
+!/mobile-app-fresh/public/assets/node_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/fonts/
+!/mobile-app-fresh/dist/assets/
+!/mobile-app-fresh/dist/assets/node_modules/
+!/mobile-app-fresh/dist/assets/node_modules/@expo/
+!/mobile-app-fresh/dist/assets/node_modules/@expo/vector-icons/
+!/mobile-app-fresh/dist/assets/node_modules/@expo/vector-icons/build/
+!/mobile-app-fresh/dist/assets/node_modules/@expo/vector-icons/build/vendor/
+!/mobile-app-fresh/dist/assets/node_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/
+!/mobile-app-fresh/dist/assets/node_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/fonts/
 .expo/
 package-lock.json
