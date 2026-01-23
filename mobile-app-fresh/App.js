@@ -34,7 +34,7 @@ export default function App() {
       try {
         if (Platform.OS === 'web') {
           await Font.loadAsync({
-            MaterialCommunityIcons: '/assets/vendor_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/MaterialCommunityIcons.6e435534bd35da5fef04168860a9b8fa.ttf',
+            MaterialCommunityIcons: '/assets/Fonts/MaterialCommunityIcons.6e435534bd35da5fef04168860a9b8fa.ttf',
           });
         } else {
           await Font.loadAsync({
