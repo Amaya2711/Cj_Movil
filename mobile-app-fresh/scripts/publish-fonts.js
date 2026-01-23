@@ -29,7 +29,7 @@ if (fs.existsSync(sourceDir)) {
 }
 
 try {
-  execSync('npm run export', { stdio: 'inherit' });
+  // execSync('npm run export', { stdio: 'inherit' }); // Eliminado porque no existe el script
   // Agrega archivos de fuente y también el propio script si cambió
   execSync('git add -f public/assets/Fonts/*.ttf', { stdio: 'inherit' });
   execSync('git add scripts/publish-fonts.js', { stdio: 'inherit' });
