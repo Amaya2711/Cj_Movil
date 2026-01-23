@@ -9,15 +9,15 @@ const path = require('path');
 // Copia todos los archivos MaterialCommunityIcons.*.ttf generados por Expo export
 const glob = require('glob');
 const distFontsDir = path.join(__dirname, '../dist/assets/node_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts');
-const publicFontsDir = path.join(__dirname, '../public/assets/fonts');
+const targetFontsDir = path.join(__dirname, '../dist/assets/Fonts');
 
-if (!fs.existsSync(publicFontsDir)) {
-  fs.mkdirSync(publicFontsDir, { recursive: true });
+if (!fs.existsSync(targetFontsDir)) {
+  fs.mkdirSync(targetFontsDir, { recursive: true });
 }
 
 // Limpiar fuentes viejas
-glob.sync('MaterialCommunityIcons.*.ttf', { cwd: publicFontsDir }).forEach(file => {
-  fs.unlinkSync(path.join(publicFontsDir, file));
+glob.sync('MaterialCommunityIcons.*.ttf', { cwd: targetFontsDir }).forEach(file => {
+  fs.unlinkSync(path.join(targetFontsDir, file));
 });
 
 // Copiar nuevas fuentes
@@ -27,7 +27,7 @@ if (files.length === 0) {
 } else {
   files.forEach(file => {
     const src = path.join(distFontsDir, file);
-    const dest = path.join(publicFontsDir, file);
+    const dest = path.join(targetFontsDir, file);
     fs.copyFileSync(src, dest);
     console.log(`Copiado: ${file} a ${dest}`);
   });
