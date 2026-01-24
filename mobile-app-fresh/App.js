@@ -14,7 +14,7 @@ if (typeof window !== 'undefined' && Platform.OS === 'web') {
     // Silenciar error si la propiedad no existe
   }
 }
-import { Platform } from 'react-native';
+import { Platform, View, Text } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Provider as PaperProvider, DefaultTheme } from 'react-native-paper';
