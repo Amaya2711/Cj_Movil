@@ -1,11 +1,11 @@
 {
   "dependencies": {
+    "@expo/vector-icons": "^13.0.0",
     "@react-native-picker/picker": "^2.11.4",
     "@react-navigation/native": "^6.1.6",
     "@react-navigation/native-stack": "^6.9.12",
     "axios": "^1.6.0",
     "expo": "^54.0.0",
-    "glob": "^13.0.0",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-native": "0.81.5",
@@ -16,12 +16,9 @@
     "react-native-web": "^0.21.2"
   },
   "scripts": {
-    "copy-fonts": "node scripts/copy-fonts.js",
-    "check-font": "node scripts/check-font.js",
-    "export": "expo export",
-    "postexport": "npm run copy-fonts",
-    "vercel-build": "npx --no-install expo export && npm run copy-fonts && npm run check-font",
-    "publish-fonts": "node scripts/publish-fonts.js"
+    "dev": "expo start",
+    "build": "expo export",
+    "export": "expo export"
   },
   "devDependencies": {
     "@react-native-community/cli": "latest"
