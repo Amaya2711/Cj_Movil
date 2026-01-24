@@ -18,7 +18,8 @@
   "scripts": {
     "dev": "expo start",
     "build": "expo export",
-    "export": "expo export"
+    "export": "expo export",
+    "postinstall": "chmod +x node_modules/.bin/expo"
   },
   "devDependencies": {
     "@react-native-community/cli": "latest"
