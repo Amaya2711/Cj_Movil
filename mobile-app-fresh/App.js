@@ -34,7 +34,7 @@ export default function App() {
       try {
             if (Platform.OS === 'web') {
               await Font.loadAsync({
-                MaterialCommunityIcons: '/assets/fonts/MaterialCommunityIcons.6e435534bd35da5fef04168860a9b8fa.ttf',
+                MaterialCommunityIcons: '/assets/fonts/MaterialCommunityIcons.ttf',
               });
           } else {
             await Font.loadAsync({
