@@ -62,7 +62,14 @@ export default function App() {
   }, []);
 
   if (!fontsLoaded) {
-    return null; // O un componente de carga/spinner
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#231F36' }}>
+        <Text style={{ color: '#7B3FF2', fontSize: 20, marginBottom: 16 }}>Cargando recursos...</Text>
+        <Button loading={true} mode="contained" style={{ backgroundColor: '#7B3FF2' }}>
+          Cargando
+        </Button>
+      </View>
+    );
   }
 
   return (
