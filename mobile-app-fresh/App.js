@@ -2,6 +2,18 @@ import * as React from 'react';
 import { useEffect, useState } from 'react';
 import * as Font from 'expo-font';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+// Hack para forzar la ruta de la fuente en web
+if (typeof window !== 'undefined' && Platform.OS === 'web') {
+  try {
+    // @ts-ignore
+    MaterialCommunityIcons.font = {
+      ...MaterialCommunityIcons.font,
+      uri: '/assets/fonts/MaterialCommunityIcons.ttf',
+    };
+  } catch (e) {
+    // Silenciar error si la propiedad no existe
+  }
+}
 import { Platform } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
