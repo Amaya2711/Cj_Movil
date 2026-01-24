@@ -19,7 +19,7 @@
     "dev": "expo start",
     "build": "expo export",
     "export": "expo export",
-    "postinstall": "chmod +x node_modules/.bin/expo"
+    "postinstall": "chmod +x node_modules/.bin/expo && chmod +x node_modules/react-native/sdks/hermesc/linux64-bin/hermesc"
   },
   "devDependencies": {
     "@react-native-community/cli": "latest"
