@@ -55,7 +55,7 @@ export default function LoginScreen({ navigation }) {
     <View style={styles.container}>
       <Card style={styles.card}>
         <View style={{ alignItems: 'center', marginBottom: 16 }}>
-            <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#7B3FF2', marginBottom: 8 }}>Cj 4</Text>
+            <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#7B3FF2', marginBottom: 8 }}>Cj 5</Text>
           <Image source={CJTelecomLogo} style={styles.logo} resizeMode="contain" />
         </View>
         <Card.Title title="Iniciar Sesión" titleStyle={{ color: '#231F36' }} />
