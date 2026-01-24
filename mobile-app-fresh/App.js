@@ -44,15 +44,7 @@ export default function App() {
   useEffect(() => {
     async function loadFonts() {
       try {
-            if (Platform.OS === 'web') {
-              await Font.loadAsync({
-                MaterialCommunityIcons: '/assets/fonts/MaterialCommunityIcons.ttf',
-              });
-          } else {
-            await Font.loadAsync({
-              ...MaterialCommunityIcons.font,
-            });
-          }
+            // No cargar la fuente manualmente, Expo la gestiona automáticamente
         setFontsLoaded(true);
       } catch (err) {
         console.error('Error cargando fuentes:', err);
