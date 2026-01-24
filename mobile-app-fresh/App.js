@@ -8,7 +8,7 @@ if (typeof window !== 'undefined' && Platform.OS === 'web') {
     // @ts-ignore
     MaterialCommunityIcons.font = {
       ...MaterialCommunityIcons.font,
-      uri: '/assets/fonts/MaterialCommunityIcons.ttf',
+      uri: '/assets/fonts/MaterialCommunityIcons.6e435534bd35da5fef04168860a9b8fa.ttf',
     };
   } catch (e) {
     // Silenciar error si la propiedad no existe
