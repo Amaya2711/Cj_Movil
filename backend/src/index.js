@@ -1,6 +1,8 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import fs from 'fs';
+console.log('Archivos en backend:', fs.readdirSync('.'));
 import authRoutes from './routes/auth.js';
 import aprobacionRoutes from './routes/aprobacion.js';
 import solicitanteRoutes from './routes/solicitanteRoutes.js';
@@ -22,6 +24,7 @@ app.get('/', (req, res) => {
   res.send('API backend funcionando');
 });
 
+console.log('Valor de process.env.PORT:', process.env.PORT);
 const PORT = process.env.PORT;
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Servidor backend escuchando en puerto ${PORT} (0.0.0.0)`);
