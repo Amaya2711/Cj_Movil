@@ -1,11 +1,12 @@
 
-// const API_URL = 'http://192.168.137.184:4000/api/solicitantes'; // Ruta local para desarrollo
-const API_URL = 'https://cjmovil-production.up.railway.app/api/solicitantes'; // URL pública de Railway
 
+import { BASE_URL } from '../config';
+
+const API_PATH = '/api/solicitantes';
 export const getSolicitantes = async (nombre = '') => {
   try {
     // Si nombre está vacío, no enviar query param
-    const url = nombre ? `${API_URL}?NombreEmpleado=${encodeURIComponent(nombre)}` : API_URL;
+    const url = nombre ? `${BASE_URL}${API_PATH}?NombreEmpleado=${encodeURIComponent(nombre)}` : `${BASE_URL}${API_PATH}`;
     const response = await fetch(url);
     if (!response.ok) throw new Error('Error al consultar solicitantes');
     return await response.json();
