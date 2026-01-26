@@ -1,3 +1,6 @@
+  // ...existing code...
+
+
 import React, { useState, useEffect } from 'react';
 import { Modal, Portal, Provider, Snackbar, ActivityIndicator } from 'react-native-paper';
 import { getDatosOc } from '../api/datosOc';
@@ -27,6 +30,29 @@ export default function AprobarPagosScreen() {
   const [snackbarMsg, setSnackbarMsg] = useState('');
   const [loadingDatosOc, setLoadingDatosOc] = useState(false);
   const [solicitantes, setSolicitantes] = useState([]);
+
+  // DEBUG: Detectar claves duplicadas en combinación de 'Corre' e 'IdSite'
+  useEffect(() => {
+    if (Array.isArray(resultados) && resultados.length > 0) {
+      const comboCount = {};
+      const comboItems = {};
+      resultados.forEach(item => {
+        const combo = `${String(item.Corre)}_${String(item.IdSite)}`;
+        comboCount[combo] = (comboCount[combo] || 0) + 1;
+        if (!comboItems[combo]) comboItems[combo] = [];
+        comboItems[combo].push(item);
+      });
+      const duplicados = Object.entries(comboCount).filter(([k, v]) => v > 1);
+      if (duplicados.length > 0) {
+        duplicados.forEach(([combo]) => {
+          const items = comboItems[combo];
+          items.forEach(item => {
+            console.warn(`Duplicado encontrado -> Corre: ${item.Corre}, IdSite: ${item.IdSite}`, item);
+          });
+        });
+      }
+    }
+  }, [resultados]);
 
   // DEBUG: Detectar claves duplicadas en resultados
   useEffect(() => {
@@ -107,6 +133,8 @@ export default function AprobarPagosScreen() {
      setExpandido(prev => ({ ...prev, [id]: !prev[id] }));
    };
 
+  const safe = v => (v === undefined || v === null ? '' : String(v));
+
   return (
     <Provider>
     <View style={styles.container}>
@@ -163,19 +191,14 @@ export default function AprobarPagosScreen() {
           <Text style={styles.cantidadRegistros}>{`Registros: ${tab === 'todos' ? (Array.isArray(resultados) ? resultados.length : 0) : seleccionados.length}`}</Text>
         </View>
         <FlatList
-          data={tab === 'todos' ? resultados : resultados.filter((item, index) => {
-            // Usar id único si existe, si no, combinar con el índice
-            const uniqueId = item.IdAprobacion || item.Id || `${item.FecIngreso}_${item.Solicitante}_${item.Total}_${index}`;
-            return seleccionados.includes(uniqueId);
-          })}
-          keyExtractor={(item, index) => {
-            // Usar combinación de campos y el índice para garantizar unicidad
-            return `${item.IdAprobacion ?? ''}_${item.Id ?? ''}_${item.FecIngreso ?? ''}_${item.Solicitante ?? ''}_${item.Total ?? ''}_${index}`;
+          data={tab === 'todos' ? resultados : resultados.filter(item => seleccionados.includes(String(item.Corre)))}
+          keyExtractor={(item) => {
+            // Usar el campo 'Corre' del store, que es único para cada registro
+            return String(item.Corre);
           }}
-          renderItem={({ item, index }) => {
-            const safe = v => (v === undefined || v === null ? '' : String(v));
-            // Usar el mismo identificador único que keyExtractor
-            const uniqueId = item.IdAprobacion || item.Id || `${safe(item.FecIngreso)}_${safe(item.Solicitante)}_${safe(item.Total)}_${index}`;
+          renderItem={({ item }) => {
+            // Usar el campo 'Corre' como identificador único
+            const uniqueId = String(item.Corre);
             return (
               <View style={styles.tableRow}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -212,6 +235,12 @@ export default function AprobarPagosScreen() {
                       const result = await getDatosOc(params);
                       setDatosOc(result);
                       setLoadingDatosOc(false);
+                      // Mostrar snackbar si la consulta retorna vacío o error
+                      if ((Array.isArray(result) && result.length === 0) || (result && result.error)) {
+                        setSnackbarMsg('No existe datos registrados para la OC');
+                        setSnackbarVisible(true);
+                        setModalVisible(false);
+                      }
                     }}
                     title="Datos Oc"
                   >
