@@ -4,7 +4,7 @@ import { TextInput, Button, Text, Card, Snackbar } from 'react-native-paper';
 import axios from 'axios';
 import { Platform } from 'react-native';
 const CJTelecomLogo = Platform.OS === 'web'
-  ? { uri: '/assets/logo.png' }
+  ? { uri: '/logo.png' }
   : require('../../assets/logo.png');
 import { UserContext } from '../context/UserContext';
 

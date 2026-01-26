@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { Modal, Portal, Provider, Snackbar, ActivityIndicator } from 'react-native-paper';
+import { getDatosOc } from '../api/datosOc';
 import { View, Text, StyleSheet, FlatList } from 'react-native';
 import { Card, Checkbox, Button } from 'react-native-paper';
 import { getAprobaciones } from '../api/aprobaciones';
@@ -18,6 +20,11 @@ export default function AprobarPagosScreen() {
   const [seleccionados, setSeleccionados] = useState([]); // array de ids seleccionados
   const [expandido, setExpandido] = useState({}); // control de expansión por registro
   const [tab, setTab] = useState('todos'); // 'todos' | 'seleccionados'
+  const [modalVisible, setModalVisible] = useState(false);
+  const [datosOc, setDatosOc] = useState(null);
+  const [snackbarVisible, setSnackbarVisible] = useState(false);
+  const [snackbarMsg, setSnackbarMsg] = useState('');
+  const [loadingDatosOc, setLoadingDatosOc] = useState(false);
   const [solicitantes, setSolicitantes] = useState([]);
 
   // DEBUG: Detectar claves duplicadas en resultados
@@ -100,6 +107,7 @@ export default function AprobarPagosScreen() {
    };
 
   return (
+    <Provider>
     <View style={styles.container}>
       <Card style={styles.filtrosCard}>
         <TextInput
@@ -180,6 +188,32 @@ export default function AprobarPagosScreen() {
                   <Button mode="text" style={[styles.expandButton, { alignSelf: 'flex-end' }]} onPress={() => toggleExpandido(uniqueId)}>
                     <Text style={{color: '#2196F3'}}>{expandido[uniqueId] ? 'Cerrar detalle' : 'Ver detalle'}</Text>
                   </Button>
+                  <Button
+                    mode="text"
+                    style={[styles.expandButton, { alignSelf: 'flex-end' }]}
+                    onPress={async () => {
+                      const idocVal = item.idoc;
+                      if (idocVal === null || idocVal === undefined || Number(idocVal) <= 0) {
+                        setSnackbarMsg('No existe datos registrados para la OC');
+                        setSnackbarVisible(true);
+                        return;
+                      }
+                      setLoadingDatosOc(true);
+                      setModalVisible(true);
+                      setDatosOc(null);
+                      const result = await getDatosOc({
+                        idoc: item.idoc,
+                        fila: item.fila,
+                        Site: item.IdSite ? String(item.IdSite) : '',
+                        Tipo_Trabajo: item.Tipo_Trabajo ? String(item.Tipo_Trabajo) : ''
+                      });
+                      setDatosOc(result);
+                      setLoadingDatosOc(false);
+                    }}
+                    title="Datos Oc"
+                  >
+                    <Text style={{color: '#7B3FF2'}}>Datos Oc</Text>
+                  </Button>
                 </View>
                 <View style={[styles.cell, { flexDirection: 'row', alignItems: 'center' }]}> 
                   <Text style={{marginRight: 12}}><Text style={styles.cellLabel}>Fec.Ing:</Text> {safe(item.FecIngreso)}</Text>
@@ -208,12 +242,43 @@ export default function AprobarPagosScreen() {
       </Card>
       {/* Botones de acción */}
       <View style={styles.actionButtonsContainer}>
-        <Button mode="contained" style={[styles.actionButton, { backgroundColor: '#4CAF50' }]} onPress={() => {}}><Text style={{color: '#fff', textAlign: 'center'}}>Aceptar</Text></Button>
-        <Button mode="contained" style={[styles.actionButton, { backgroundColor: '#F44336' }]} onPress={() => {}}><Text style={{color: '#fff', textAlign: 'center'}}>Rechazar</Text></Button>
-        <Button mode="contained" style={[styles.actionButton, { backgroundColor: '#FF9800' }]} onPress={() => {}}><Text style={{color: '#fff', textAlign: 'center'}}>Observar</Text></Button>
-        <Button mode="contained" style={[styles.actionButton, { backgroundColor: '#2196F3' }]} onPress={() => {}}><Text style={{color: '#fff', textAlign: 'center'}}>Regularizar</Text></Button>
+        <Button mode="contained" style={[styles.actionButton, { backgroundColor: '#4CAF50' }]} onPress={() => {}} title="Aceptar"><Text style={{color: '#fff', textAlign: 'center'}}>Aceptar</Text></Button>
+        <Button mode="contained" style={[styles.actionButton, { backgroundColor: '#F44336' }]} onPress={() => {}} title="Rechazar"><Text style={{color: '#fff', textAlign: 'center'}}>Rechazar</Text></Button>
+        <Button mode="contained" style={[styles.actionButton, { backgroundColor: '#FF9800' }]} onPress={() => {}} title="Observar"><Text style={{color: '#fff', textAlign: 'center'}}>Observar</Text></Button>
+        <Button mode="contained" style={[styles.actionButton, { backgroundColor: '#2196F3' }]} onPress={() => {}} title="Regularizar"><Text style={{color: '#fff', textAlign: 'center'}}>Regularizar</Text></Button>
       </View>
+      <Portal>
+        <Modal visible={modalVisible} onDismiss={() => setModalVisible(false)} contentContainerStyle={styles.modalContainer}>
+          <Text style={styles.modalTitle}>Datos OC</Text>
+          {loadingDatosOc && <ActivityIndicator animating size="large" style={{marginVertical: 16}} />}
+          {!loadingDatosOc && datosOc && Array.isArray(datosOc) && datosOc.length > 0 && (
+            datosOc.map((row, idx) => (
+              <View key={idx} style={{marginBottom: 12}}>
+                {Object.entries(row).map(([key, value]) => (
+                  <Text key={key}><Text style={styles.cellLabel}>{key}:</Text> {String(value ?? '')}</Text>
+                ))}
+              </View>
+            ))
+          )}
+          {!loadingDatosOc && datosOc && Array.isArray(datosOc) && datosOc.length === 0 && (
+            <Text>No hay resultados para la OC.</Text>
+          )}
+          {!loadingDatosOc && datosOc && datosOc.error && (
+            <Text style={{color: 'red'}}>Error: {datosOc.message}</Text>
+          )}
+          <Button mode="contained" onPress={() => setModalVisible(false)} style={{marginTop: 16}}>Cerrar</Button>
+        </Modal>
+        <Snackbar
+          visible={snackbarVisible}
+          onDismiss={() => setSnackbarVisible(false)}
+          duration={2500}
+          style={{backgroundColor: '#F44336'}}
+        >
+          {snackbarMsg}
+        </Snackbar>
+      </Portal>
     </View>
+    </Provider>
   );
 }
 
@@ -294,5 +359,19 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingVertical: 6,
     maxWidth: '25%',
+  },
+  modalContainer: {
+    backgroundColor: '#fff',
+    padding: 24,
+    margin: 24,
+    borderRadius: 12,
+    alignItems: 'flex-start',
+    elevation: 4,
+  },
+  modalTitle: {
+    fontWeight: 'bold',
+    fontSize: 18,
+    marginBottom: 12,
+    color: '#7B3FF2',
   },
 });
