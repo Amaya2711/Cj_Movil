@@ -3,7 +3,7 @@ import cors from 'cors';
 
 import aprobacionRoutes from './routes/aprobacion.js';
 import solicitanteRoutes from './routes/solicitanteRoutes.js';
-import datosocRoutes from './routes/datosoc.js';
+import datosocRoutes from './routes/datosOc.js';
 
 const app = express();
 app.use(cors());

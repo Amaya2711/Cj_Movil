@@ -22,6 +22,7 @@ export default function AprobarPagosScreen() {
   const [tab, setTab] = useState('todos'); // 'todos' | 'seleccionados'
   const [modalVisible, setModalVisible] = useState(false);
   const [datosOc, setDatosOc] = useState(null);
+  const [paramsOc, setParamsOc] = useState(null);
   const [snackbarVisible, setSnackbarVisible] = useState(false);
   const [snackbarMsg, setSnackbarMsg] = useState('');
   const [loadingDatosOc, setLoadingDatosOc] = useState(false);
@@ -168,8 +169,8 @@ export default function AprobarPagosScreen() {
             return seleccionados.includes(uniqueId);
           })}
           keyExtractor={(item, index) => {
-            // Siempre usar el índice para garantizar unicidad
-            return String(item.IdAprobacion || item.Id || `${item.FecIngreso}_${item.Solicitante}_${item.Total}`) + '_' + index;
+            // Usar combinación de campos y el índice para garantizar unicidad
+            return `${item.IdAprobacion ?? ''}_${item.Id ?? ''}_${item.FecIngreso ?? ''}_${item.Solicitante ?? ''}_${item.Total ?? ''}_${index}`;
           }}
           renderItem={({ item, index }) => {
             const safe = v => (v === undefined || v === null ? '' : String(v));
@@ -184,7 +185,7 @@ export default function AprobarPagosScreen() {
                       onPress={() => toggleSeleccion(uniqueId)}
                     />
                   </View>
-                  <View style={{ flex: 1 }} /> {/* Espacio flexible para empujar el botón a la derecha */}
+                  <View style={{ flex: 1 }}>{/* Espacio flexible para empujar el botón a la derecha */}</View>
                   <Button mode="text" style={[styles.expandButton, { alignSelf: 'flex-end' }]} onPress={() => toggleExpandido(uniqueId)}>
                     <Text style={{color: '#2196F3'}}>{expandido[uniqueId] ? 'Cerrar detalle' : 'Ver detalle'}</Text>
                   </Button>
@@ -201,12 +202,14 @@ export default function AprobarPagosScreen() {
                       setLoadingDatosOc(true);
                       setModalVisible(true);
                       setDatosOc(null);
-                      const result = await getDatosOc({
+                      const params = {
                         idoc: item.idoc,
-                        fila: item.fila,
+                        fila: item.fila ? String(item.fila).split(',')[0] : '',
                         Site: item.IdSite ? String(item.IdSite) : '',
                         Tipo_Trabajo: item.Tipo_Trabajo ? String(item.Tipo_Trabajo) : ''
-                      });
+                      };
+                      setParamsOc(params);
+                      const result = await getDatosOc(params);
                       setDatosOc(result);
                       setLoadingDatosOc(false);
                     }}
@@ -240,13 +243,19 @@ export default function AprobarPagosScreen() {
           }}
         />
       </Card>
-      {/* Botones de acción */}
-      <View style={styles.actionButtonsContainer}>
-        <Button mode="contained" style={[styles.actionButton, { backgroundColor: '#4CAF50' }]} onPress={() => {}} title="Aceptar"><Text style={{color: '#fff', textAlign: 'center'}}>Aceptar</Text></Button>
-        <Button mode="contained" style={[styles.actionButton, { backgroundColor: '#F44336' }]} onPress={() => {}} title="Rechazar"><Text style={{color: '#fff', textAlign: 'center'}}>Rechazar</Text></Button>
-        <Button mode="contained" style={[styles.actionButton, { backgroundColor: '#FF9800' }]} onPress={() => {}} title="Observar"><Text style={{color: '#fff', textAlign: 'center'}}>Observar</Text></Button>
-        <Button mode="contained" style={[styles.actionButton, { backgroundColor: '#2196F3' }]} onPress={() => {}} title="Regularizar"><Text style={{color: '#fff', textAlign: 'center'}}>Regularizar</Text></Button>
-      </View>
+      {/* Botones de acción solo en la pestaña Seleccionados */}
+      {tab === 'seleccionados' && (
+        <View style={{ gap: 8 }}>
+          <View style={[styles.actionButtonsContainer, { marginBottom: 0 }]}> 
+            <Button mode="contained" disabled={seleccionados.length === 0} style={[styles.actionButton, { backgroundColor: '#4CAF50' }]} onPress={() => {}} title="Aceptar"><Text style={{color: '#fff', textAlign: 'center'}}>Aceptar</Text></Button>
+            <Button mode="contained" disabled={seleccionados.length === 0} style={[styles.actionButton, { backgroundColor: '#F44336' }]} onPress={() => {}} title="Rechazar"><Text style={{color: '#fff', textAlign: 'center'}}>Rechazar</Text></Button>
+          </View>
+          <View style={styles.actionButtonsContainer}>
+            <Button mode="contained" disabled={seleccionados.length === 0} style={[styles.actionButton, { backgroundColor: '#FF9800' }]} onPress={() => {}} title="Observar"><Text style={{color: '#fff', textAlign: 'center'}}>Observar</Text></Button>
+            <Button mode="contained" disabled={seleccionados.length === 0} style={[styles.actionButton, { backgroundColor: '#2196F3' }]} onPress={() => {}} title="Regularizar"><Text style={{color: '#fff', textAlign: 'center'}}>Regularizar</Text></Button>
+          </View>
+        </View>
+      )}
       <Portal>
         <Modal visible={modalVisible} onDismiss={() => setModalVisible(false)} contentContainerStyle={styles.modalContainer}>
           <Text style={styles.modalTitle}>Datos OC</Text>
@@ -254,9 +263,18 @@ export default function AprobarPagosScreen() {
           {!loadingDatosOc && datosOc && Array.isArray(datosOc) && datosOc.length > 0 && (
             datosOc.map((row, idx) => (
               <View key={idx} style={{marginBottom: 12}}>
-                {Object.entries(row).map(([key, value]) => (
-                  <Text key={key}><Text style={styles.cellLabel}>{key}:</Text> {String(value ?? '')}</Text>
-                ))}
+                {Object.entries(row)
+                  .filter(([key]) => key !== 'IdMoneda')
+                  .map(([key, value]) => {
+                    let label = key;
+                    if (key === 'idoc') label = 'OC';
+                    else if (key === 'SubOc') label = 'Monto OC';
+                    else if (key === 'SubPlanilla') label = 'Monto Pago';
+                    else if (key === 'Porce') label = 'Porcentaje';
+                    return (
+                      <Text key={key}><Text style={styles.cellLabel}>{label}:</Text> {String(value ?? '')}</Text>
+                    );
+                  })}
               </View>
             ))
           )}

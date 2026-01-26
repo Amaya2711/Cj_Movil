@@ -6,6 +6,7 @@ console.log('Archivos en backend:', fs.readdirSync('.'));
 import authRoutes from './routes/auth.js';
 import aprobacionRoutes from './routes/aprobacion.js';
 import solicitanteRoutes from './routes/solicitanteRoutes.js';
+import datosocRoutes from './routes/datosOc.js';
 
 dotenv.config();
 
@@ -19,6 +20,7 @@ app.use('/api/auth', authRoutes);
 
 app.use('/api/aprobaciones', aprobacionRoutes);
 app.use('/api', solicitanteRoutes);
+app.use('/api', datosocRoutes);
 
 app.get('/', (req, res) => {
   res.send('API backend funcionando');
