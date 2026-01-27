@@ -317,12 +317,20 @@ export default function AprobarPagosScreen() {
                   for (const params of paramsList) {
                     try {
                       const resp = await aprobarPlanilla(params);
+                      // Log completo de la respuesta
+                      console.log(`Respuesta API para Corre ${params.CorFil}:`, resp?.data, resp);
                       if (resp && resp.data && resp.data.sqlDebug) {
                         sqlDebugsTemp.push(`Corre ${params.CorFil}: ${resp.data.sqlDebug}`);
                         // Mostrar en consola
                         console.log(`SQL ejecutado para Corre ${params.CorFil}:`, resp.data.sqlDebug);
                       }
+                      // Mostrar mensaje de éxito específico si viene en la respuesta
+                      if (resp && resp.data && resp.data.message) {
+                        setSnackbarMsg(`Corre ${params.CorFil}: ${resp.data.message}`);
+                        setSnackbarVisible(true);
+                      }
                     } catch (e) {
+                      console.error(`Error en Corre ${params.CorFil}:`, e);
                       errores.push(`Error en Corre ${params.CorFil}: ${e?.response?.data?.message || e.message}`);
                     }
                   }
