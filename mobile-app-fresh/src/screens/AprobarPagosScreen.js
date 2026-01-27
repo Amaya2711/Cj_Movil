@@ -131,6 +131,13 @@ export default function AprobarPagosScreen() {
   // ...existing code...
 
    const toggleSeleccion = (id) => {
+     // Buscar el registro correspondiente
+     const registro = resultados.find(item => String(item.Corre) === String(id));
+     if (!registro || registro.IdResponsable === undefined || registro.IdResponsable === null || registro.IdResponsable === '') {
+       setSnackbarMsg('No se puede seleccionar: falta IdResponsable');
+       setSnackbarVisible(true);
+       return;
+     }
      setSeleccionados(prev =>
        prev.includes(id) ? prev.filter(sid => sid !== id) : [...prev, id]
      );
@@ -258,8 +265,9 @@ export default function AprobarPagosScreen() {
                   </Button>
                 </View>
                 <View style={[styles.cell, { flexDirection: 'row', alignItems: 'center' }]}> 
-                  <Text style={{marginRight: 12}}><Text style={styles.cellLabel}>Fec.Ing:</Text> {safe(item.FecIngreso)}</Text>
-                  <Text><Text style={styles.cellLabel}>Total:</Text> {safe(item.Total)} {safe(item.Moneda)}</Text>
+                  <Text style={{marginRight: 12}}><Text className={styles.cellLabel}>Fec.Ing:</Text> {safe(item.FecIngreso)}</Text>
+                  <Text style={{marginRight: 12}}><Text style={styles.cellLabel}>Total:</Text> {safe(item.Total)} {safe(item.Moneda)}</Text>
+                  <Text><Text style={styles.cellLabel}>Responsable:</Text> {safe(item.Responsable)}</Text>
                 </View>
                 <View style={styles.cell}><Text><Text style={styles.cellLabel}>Solicitante:</Text> {safe(item.Solicitante)}</Text></View>
                 {expandido[uniqueId] && (
@@ -305,11 +313,32 @@ export default function AprobarPagosScreen() {
                   return;
                 }
                 const seleccionadosData = resultados.filter(item => seleccionados.includes(String(item.Corre)));
-                const paramsList = seleccionadosData.map(item => ({
-                  ipLocal: String(ipLocal),
-                  CorFil: parseInt(item.Corre, 10),
-                  cIdSite: String(item.IdSite)
-                }));
+                // Validar montos antes de aprobar
+                const montoLimiteSoles = 2000;
+                const montoLimiteDolares = 530;
+                // Para cada registro, si el monto es mayor a 2000 SOLES o 530 DOLARES, IdEst=6, sino IdEst=1
+                const paramsList = seleccionadosData.map(item => {
+                  const monto = Number(item.Total);
+                  const moneda = (item.Moneda || '').toUpperCase();
+                  let IdEst = 1;
+                  if ((moneda.includes('SOL') && monto > 2000) || (moneda.includes('DOL') && monto > 530)) {
+                    IdEst = 6;
+                  }
+                  return {
+                    ipLocal: String(ipLocal),
+                    CorFil: parseInt(item.Corre, 10),
+                    cIdSite: String(item.IdSite),
+                    IdEst,
+                    IdResponsable: item.IdResponsable !== undefined ? parseInt(item.IdResponsable, 10) : null
+                  };
+                });
+                // Si algún registro requiere re-aprobación, mostrar mensaje
+                if (paramsList.some(p => p.IdEst === 6)) {
+                  setSnackbarMsg('Monto debe pasar por RE-APROBACION');
+                  setSnackbarVisible(true);
+                  // Si quieres que igual se envíen los registros, comenta el return de abajo
+                  // return;
+                }
                 // Ejecutar directamente la aprobación sin mostrar modal de parámetros
                 (async () => {
                   let errores = [];

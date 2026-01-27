@@ -1,5 +1,9 @@
 import React, { useState, useContext } from 'react';
-import * as Network from 'expo-network';
+import { Platform } from 'react-native';
+let Network = null;
+if (Platform.OS !== 'web') {
+  Network = require('expo-network');
+}
 import { View, StyleSheet, Image } from 'react-native';
 import { TextInput, Button, Text, Card, Snackbar } from 'react-native-paper';
 import axios from 'axios';
@@ -29,16 +33,18 @@ export default function LoginScreen({ navigation }) {
         // Obtener IP local y tipo de red (compatible con Expo)
         let ipLocal = '';
         let networkType = '';
-        try {
-          ipLocal = await Network.getIpAddressAsync();
-        } catch (e) {
-          ipLocal = '';
-        }
-        try {
-          networkType = await Network.getNetworkStateAsync();
-          networkType = networkType.type || '';
-        } catch (e) {
-          networkType = '';
+        if (Platform.OS !== 'web' && Network) {
+          try {
+            ipLocal = await Network.getIpAddressAsync();
+          } catch (e) {
+            ipLocal = '';
+          }
+          try {
+            networkType = await Network.getNetworkStateAsync();
+            networkType = networkType.type || '';
+          } catch (e) {
+            networkType = '';
+          }
         }
         // Guardar datos globales
         setUserData({
