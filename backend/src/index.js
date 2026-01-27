@@ -7,6 +7,7 @@ import authRoutes from './routes/auth.js';
 import aprobacionRoutes from './routes/aprobacion.js';
 import solicitanteRoutes from './routes/solicitanteRoutes.js';
 import datosocRoutes from './routes/datosOc.js';
+import aprobarPlanillaRoutes from './routes/aprobarPlanilla.js';
 
 dotenv.config();
 
@@ -21,6 +22,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/aprobaciones', aprobacionRoutes);
 app.use('/api', solicitanteRoutes);
 app.use('/api', datosocRoutes);
+app.use('/api', aprobarPlanillaRoutes);
 
 app.get('/', (req, res) => {
   res.send('API backend funcionando');

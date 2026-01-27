@@ -1,9 +1,11 @@
   // ...existing code...
 
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { Modal, Portal, Provider, Snackbar, ActivityIndicator } from 'react-native-paper';
 import { getDatosOc } from '../api/datosOc';
+import { aprobarPlanilla } from '../api/aprobarPlanilla';
+import { UserContext } from '../context/UserContext';
 import { View, Text, StyleSheet, FlatList } from 'react-native';
 import { Card, Checkbox, Button } from 'react-native-paper';
 import { getAprobaciones } from '../api/aprobaciones';
@@ -15,6 +17,11 @@ import { TextInput, List } from 'react-native-paper';
 
 
 export default function AprobarPagosScreen() {
+  const [confirmModalVisible, setConfirmModalVisible] = useState(false);
+  const [confirmParams, setConfirmParams] = useState([]);
+  const [sqlDebugModalVisible, setSqlDebugModalVisible] = useState(false);
+  const [sqlDebugs, setSqlDebugs] = useState([]);
+  const { ipLocal } = useContext(UserContext);
   console.log('AprobarPagosScreen montado');
   const [filtroSolicitante, setFiltroSolicitante] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -208,7 +215,10 @@ export default function AprobarPagosScreen() {
                       onPress={() => toggleSeleccion(uniqueId)}
                     />
                   </View>
-                  <View style={{ flex: 1 }}>{/* Espacio flexible para empujar el botón a la derecha */}</View>
+                  <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}>
+                    <Text style={{ fontWeight: 'bold', color: '#7B3FF2', marginRight: 4 }}>Correlativo:</Text>
+                    <Text>{safe(item.Corre)}</Text>
+                  </View>
                   <Button mode="text" style={[styles.expandButton, { alignSelf: 'flex-end' }]} onPress={() => toggleExpandido(uniqueId)}>
                     <Text style={{color: '#2196F3'}}>{expandido[uniqueId] ? 'Cerrar detalle' : 'Ver detalle'}</Text>
                   </Button>
@@ -274,14 +284,99 @@ export default function AprobarPagosScreen() {
       </Card>
       {/* Botones de acción solo en la pestaña Seleccionados */}
       {tab === 'seleccionados' && (
-        <View style={{ gap: 8 }}>
-          <View style={[styles.actionButtonsContainer, { marginBottom: 0 }]}> 
-            <Button mode="contained" disabled={seleccionados.length === 0} style={[styles.actionButton, { backgroundColor: '#4CAF50' }]} onPress={() => {}} title="Aceptar"><Text style={{color: '#fff', textAlign: 'center'}}>Aceptar</Text></Button>
-            <Button mode="contained" disabled={seleccionados.length === 0} style={[styles.actionButton, { backgroundColor: '#F44336' }]} onPress={() => {}} title="Rechazar"><Text style={{color: '#fff', textAlign: 'center'}}>Rechazar</Text></Button>
+        <View style={{ width: '100%' }}>
+          <View style={styles.actionButtonsRow}>
+            <Button
+              mode="contained"
+              disabled={seleccionados.length === 0}
+              style={[
+                styles.actionButtonFull,
+                { backgroundColor: seleccionados.length === 0 ? '#BDBDBD' : '#4CAF50' }
+              ]}
+              onPress={() => {
+                if (seleccionados.length === 0) {
+                  setSnackbarMsg('Debes seleccionar al menos un registro para aprobar.');
+                  setSnackbarVisible(true);
+                  return;
+                }
+                if (!ipLocal) {
+                  setSnackbarMsg('No se pudo obtener la IP local.');
+                  setSnackbarVisible(true);
+                  return;
+                }
+                const seleccionadosData = resultados.filter(item => seleccionados.includes(String(item.Corre)));
+                const paramsList = seleccionadosData.map(item => ({
+                  ipLocal: String(ipLocal),
+                  CorFil: parseInt(item.Corre, 10),
+                  cIdSite: String(item.IdSite)
+                }));
+                // Ejecutar directamente la aprobación sin mostrar modal de parámetros
+                (async () => {
+                  let errores = [];
+                  let sqlDebugsTemp = [];
+                  for (const params of paramsList) {
+                    try {
+                      const resp = await aprobarPlanilla(params);
+                      if (resp && resp.data && resp.data.sqlDebug) {
+                        sqlDebugsTemp.push(`Corre ${params.CorFil}: ${resp.data.sqlDebug}`);
+                        // Mostrar en consola
+                        console.log(`SQL ejecutado para Corre ${params.CorFil}:`, resp.data.sqlDebug);
+                      }
+                    } catch (e) {
+                      errores.push(`Error en Corre ${params.CorFil}: ${e?.response?.data?.message || e.message}`);
+                    }
+                  }
+                  if (errores.length === 0) {
+                    setSnackbarMsg('Aprobación exitosa.');
+                  } else {
+                    setSnackbarMsg('Algunos registros no se aprobaron: ' + errores.join('; '));
+                  }
+                  setSnackbarVisible(true);
+                  cargarAprobaciones();
+                })();
+              }}
+              title="Aprobar"
+            >
+              <Text style={{ color: '#fff', textAlign: 'center' }}>Aprobar recibo</Text>
+            </Button>
+            <Button
+              mode="contained"
+              disabled={seleccionados.length === 0}
+              style={[
+                styles.actionButtonFull,
+                { backgroundColor: seleccionados.length === 0 ? '#BDBDBD' : '#F44336' }
+              ]}
+              onPress={() => {}}
+              title="Rechazar"
+            >
+              <Text style={{ color: '#fff', textAlign: 'center' }}>Rechazar</Text>
+            </Button>
           </View>
-          <View style={styles.actionButtonsContainer}>
-            <Button mode="contained" disabled={seleccionados.length === 0} style={[styles.actionButton, { backgroundColor: '#FF9800' }]} onPress={() => {}} title="Observar"><Text style={{color: '#fff', textAlign: 'center'}}>Observar</Text></Button>
-            <Button mode="contained" disabled={seleccionados.length === 0} style={[styles.actionButton, { backgroundColor: '#2196F3' }]} onPress={() => {}} title="Regularizar"><Text style={{color: '#fff', textAlign: 'center'}}>Regularizar</Text></Button>
+          <View style={styles.actionButtonsRow}>
+            <Button
+              mode="contained"
+              disabled={seleccionados.length === 0}
+              style={[
+                styles.actionButtonFull,
+                { backgroundColor: seleccionados.length === 0 ? '#BDBDBD' : '#FF9800' }
+              ]}
+              onPress={() => {}}
+              title="Observar"
+            >
+              <Text style={{ color: '#fff', textAlign: 'center' }}>Observar</Text>
+            </Button>
+            <Button
+              mode="contained"
+              disabled={seleccionados.length === 0}
+              style={[
+                styles.actionButtonFull,
+                { backgroundColor: seleccionados.length === 0 ? '#BDBDBD' : '#2196F3' }
+              ]}
+              onPress={() => {}}
+              title="Regularizar"
+            >
+              <Text style={{ color: '#fff', textAlign: 'center' }}>Regularizar</Text>
+            </Button>
           </View>
         </View>
       )}
@@ -319,10 +414,19 @@ export default function AprobarPagosScreen() {
           visible={snackbarVisible}
           onDismiss={() => setSnackbarVisible(false)}
           duration={2500}
-          style={{backgroundColor: '#F44336'}}
+          style={{backgroundColor: snackbarMsg.includes('exitosa') ? '#4CAF50' : '#F44336'}}
         >
           {snackbarMsg}
         </Snackbar>
+
+        {/* Modal para mostrar SQL Debug */}
+        <Modal visible={sqlDebugModalVisible} onDismiss={() => setSqlDebugModalVisible(false)} contentContainerStyle={styles.modalContainer}>
+          <Text style={styles.modalTitle}>SQL ejecutado</Text>
+          {sqlDebugs.length > 0 ? sqlDebugs.map((sql, idx) => (
+            <Text key={idx} style={{marginBottom: 8, fontSize: 12, color: '#333'}}>{sql}</Text>
+          )) : <Text>No hay SQL para mostrar.</Text>}
+          <Button mode="contained" style={{marginTop: 12}} onPress={() => setSqlDebugModalVisible(false)}>Cerrar</Button>
+        </Modal>
       </Portal>
     </View>
     </Provider>
@@ -390,7 +494,7 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-end',
     marginVertical: 4,
   },
-  actionButtonsContainer: {
+  actionButtonsRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -399,13 +503,13 @@ const styles = StyleSheet.create({
     gap: 8,
     width: '100%',
   },
-  actionButton: {
+  actionButtonFull: {
     flex: 1,
     marginHorizontal: 2,
     minWidth: 0,
     borderRadius: 8,
-    paddingVertical: 6,
-    maxWidth: '25%',
+    paddingVertical: 10,
+    maxWidth: '100%',
   },
   modalContainer: {
     backgroundColor: '#fff',
