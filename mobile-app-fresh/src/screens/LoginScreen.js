@@ -1,5 +1,5 @@
 import React, { useState, useContext } from 'react';
-import { Platform } from 'react-native';
+// import { Platform } from 'react-native'; // Eliminado duplicado
 let Network = null;
 if (Platform.OS !== 'web') {
   Network = require('expo-network');
