@@ -37,7 +37,8 @@ export default function LoginScreen({ navigation }) {
           try {
             ipLocal = await Network.getIpAddressAsync();
           } catch (e) {
-            ipLocal = '';
+            ipLocal = '192.168.0.1'; // Valor por defecto
+            setError('No se pudo obtener la IP Local, se usó una IP por defecto');
           }
           try {
             networkType = await Network.getNetworkStateAsync();

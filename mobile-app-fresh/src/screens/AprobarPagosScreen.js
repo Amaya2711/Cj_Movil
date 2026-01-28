@@ -307,10 +307,9 @@ export default function AprobarPagosScreen() {
                   setSnackbarVisible(true);
                   return;
                 }
-                if (!ipLocal) {
-                  setSnackbarMsg('No se pudo obtener la IP local.');
-                  setSnackbarVisible(true);
-                  return;
+                let ipLocalMod = ipLocal;
+                if (!ipLocalMod) {
+                  ipLocalMod = '192.168.0.1'; // Valor por defecto si está vacío
                 }
                 const seleccionadosData = resultados.filter(item => seleccionados.includes(String(item.Corre)));
                 // Validar montos antes de aprobar
@@ -325,7 +324,7 @@ export default function AprobarPagosScreen() {
                     IdEst = 6;
                   }
                   return {
-                    ipLocal: String(ipLocal),
+                    ipLocal: String(ipLocalMod),
                     CorFil: parseInt(item.Corre, 10),
                     cIdSite: String(item.IdSite),
                     IdEst,
