@@ -11,7 +11,7 @@ if (Platform.OS !== 'web') {
 }
 
 // Logo (Expo maneja web / android / ios)
-const CJTelecomLogo = require('../../assets/logoCj_.png');
+//const CJTelecomLogo = require('../../assets/logoCj_.png');
 
 // URL pública del backend
 const API_URL = 'https://cjmovil-production.up.railway.app/api/auth/login';
