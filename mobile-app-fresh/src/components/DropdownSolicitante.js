@@ -1,22 +1,23 @@
 
 import React, { useState, useMemo } from 'react';
 import { View, StyleSheet, TextInput } from 'react-native';
-import { Menu, Button, List } from 'react-native-paper';
+import { Menu, Button } from 'react-native-paper';
 
 export default function DropdownSolicitante({ data, value, onChange }) {
-  if (!Array.isArray(data) || data.length === 0) return null;
   const [search, setSearch] = useState('');
   const [visible, setVisible] = useState(false);
 
   // Filtrar por NombreEmpleado según lo que se digite
   const filteredList = useMemo(() => {
     // Solo incluir los que tengan NombreEmpleado válido y sea string
-    const validData = data.filter(item => typeof item.NombreEmpleado === 'string' && item.NombreEmpleado.trim() !== '');
+    const validData = Array.isArray(data) ? data.filter(item => typeof item.NombreEmpleado === 'string' && item.NombreEmpleado.trim() !== '') : [];
     if (!search) return validData;
     return validData.filter(item => item.NombreEmpleado.toLowerCase().includes(search.toLowerCase()));
   }, [data, search]);
 
-  const selectedLabel = data.find(item => item.IdEmpleado === value)?.NombreEmpleado || '';
+  const selectedLabel = Array.isArray(data) ? data.find(item => item.IdEmpleado === value)?.NombreEmpleado || '' : '';
+
+  if (!Array.isArray(data) || data.length === 0) return null;
 
   return (
     <View style={styles.container}>
@@ -32,7 +33,7 @@ export default function DropdownSolicitante({ data, value, onChange }) {
         onDismiss={() => setVisible(false)}
         anchor={
           <Button mode="outlined" onPress={() => setVisible(true)} style={styles.dropdownButton}>
-            <Text>{selectedLabel || 'Seleccione un solicitante'}</Text>
+            {selectedLabel || 'Seleccione un solicitante'}
           </Button>
         }
         style={{ width: '100%' }}

@@ -1,6 +1,6 @@
-import * as React from 'react';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import * as Font from 'expo-font';
+import { Platform, View, Text } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 // Hack para forzar la ruta de la fuente en web
 if (typeof window !== 'undefined' && Platform.OS === 'web') {
@@ -14,12 +14,13 @@ if (typeof window !== 'undefined' && Platform.OS === 'web') {
     // Silenciar error si la propiedad no existe
   }
 }
-import { Platform, View, Text } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Provider as PaperProvider, DefaultTheme, Button } from 'react-native-paper';
+
 import LoginScreen from './src/screens/LoginScreen';
 import MainMenuScreen from './src/screens/MainMenuScreen';
+import AprobarPagosScreen from './src/screens/AprobarPagosScreen';
 import { UserProvider } from './src/context/UserContext';
 
 const Stack = createNativeStackNavigator();
@@ -71,7 +72,7 @@ export default function App() {
           <Stack.Navigator initialRouteName="Login">
             <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
             <Stack.Screen name="MainMenu" component={MainMenuScreen} options={{ title: 'Menú Principal' }} />
-            <Stack.Screen name="AprobarPagos" component={require('./src/screens/AprobarPagosScreen').default} options={{ title: 'Aprobar pagos' }} />
+            <Stack.Screen name="AprobarPagos" component={AprobarPagosScreen} options={{ title: 'Aprobar pagos' }} />
           </Stack.Navigator>
         </NavigationContainer>
       </PaperProvider>
