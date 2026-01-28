@@ -1,11 +1,10 @@
-
 import { getConnection, sql } from '../db/mssql.js';
 
 // Controlador para ejecutar el store sp_Movil_AprobarPlanilla
 export const aprobarPlanilla = async (req, res) => {
   try {
-    const { ipLocal, CorFil, cIdSite, IdEst, IdResponsable, txtOb, cIdRegularizar } = req.body;
-    if (!ipLocal || !CorFil || !cIdSite || IdEst === undefined || IdResponsable === undefined || txtOb === undefined || cIdRegularizar === undefined) {
+    const { ipLocal, CorFil, cIdSite, IdEst, IdResponsable, txtOb } = req.body;
+    if (!ipLocal || !CorFil || !cIdSite || IdEst === undefined || IdResponsable === undefined || txtOb === undefined) {
       return res.status(400).json({ message: 'Faltan parámetros requeridos' });
     }
     console.log('Ejecutando sp_Movil_AprobarPlanilla con:', {
@@ -14,8 +13,7 @@ export const aprobarPlanilla = async (req, res) => {
       cIdsite: String(cIdSite),
       IdEst: parseInt(IdEst, 10),
       IdResponsable: parseInt(IdResponsable, 10),
-      txtOb: String(txtOb),
-      cIdRegularizar: parseInt(cIdRegularizar, 10)
+      txtOb: String(txtOb)
     });
     const pool = await getConnection();
     const request = pool.request();
@@ -25,7 +23,6 @@ export const aprobarPlanilla = async (req, res) => {
     request.input('IdEst', sql.Int, parseInt(IdEst, 10));
     request.input('IdResponsable', sql.Int, parseInt(IdResponsable, 10));
     request.input('txtOb', sql.VarChar(200), String(txtOb));
-    request.input('cIdRegularizar', sql.Int, parseInt(cIdRegularizar, 10));
     const result = await request.execute('sp_Movil_AprobarPlanilla');
     // Captura el mensaje de debug del primer SELECT
     const debugMensaje = result.recordsets && result.recordsets[0] && result.recordsets[0][0] && result.recordsets[0][0].DebugMensaje;

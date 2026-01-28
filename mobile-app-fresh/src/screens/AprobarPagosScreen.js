@@ -19,6 +19,10 @@ import { TextInput, List } from 'react-native-paper';
 export default function AprobarPagosScreen() {
   const [confirmModalVisible, setConfirmModalVisible] = useState(false);
   const [confirmParams, setConfirmParams] = useState([]);
+  const [accionActual, setAccionActual] = useState(''); // 'aprobar' | 'rechazar' | 'observar'
+  const [observacionInput, setObservacionInput] = useState('');
+  const [rechazoConfirmVisible, setRechazoConfirmVisible] = useState(false);
+  const [observarConfirmVisible, setObservarConfirmVisible] = useState(false);
   const [sqlDebugModalVisible, setSqlDebugModalVisible] = useState(false);
   const [sqlDebugs, setSqlDebugs] = useState([]);
   const { ipLocal } = useContext(UserContext);
@@ -151,320 +155,343 @@ export default function AprobarPagosScreen() {
 
   return (
     <Provider>
-    <View style={styles.container}>
-      <Card style={styles.filtrosCard}>
-        <TextInput
-          label="Buscar solicitante"
-          value={filtroSolicitante}
-          onChangeText={async text => {
-            setFiltroSolicitante(text);
-            setShowSuggestions(true);
-            // Consultar al backend usando el filtro
-            await cargarSolicitantes(text);
-          }}
-          onFocus={() => setShowSuggestions(true)}
-          onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-          style={{ marginBottom: 8, backgroundColor: '#fff' }}
-        />
-        {/* Etiqueta IdEmpleado eliminada por requerimiento */}
-        {showSuggestions && filtroSolicitante.length > 0 && (
-          <Card style={{ maxHeight: 200, marginBottom: 8 }}>
-            {solicitantes.filter(s => typeof s.NombreEmpleado === 'string' && s.NombreEmpleado.toLowerCase().includes(filtroSolicitante.toLowerCase())).length === 0 ? (
-              <List.Item title="No se encontraron solicitantes" />
-            ) : (
-              solicitantes.filter(s => typeof s.NombreEmpleado === 'string' && s.NombreEmpleado.toLowerCase().includes(filtroSolicitante.toLowerCase())).map(s => (
-                <List.Item
-                  key={String(s.IdEmpleado || s.NombreEmpleado)}
-                  title={String(s.NombreEmpleado)}
-                  onPress={() => {
-                    setFiltroSolicitante(s.NombreEmpleado);
-                    setShowSuggestions(false);
-                  }}
-                />
-              ))
-            )}
-          </Card>
-        )}
-        {/*
-        <Text style={{marginBottom: 8, color: solicitantes.length ? '#4CAF50' : '#F44336'}}>
-          {solicitantes.length > 0
-            ? `Solicitantes cargados: ${solicitantes.length}`
-            : 'No se encontraron solicitantes.'}
-        </Text>
-        */}
-        <Button mode="contained" onPress={buscar}>Buscar</Button>
-      </Card>
-      {/* Pestañas para alternar entre todos y seleccionados */}
-      <View style={styles.tabsContainer}>
-        <Button mode={tab === 'todos' ? 'contained' : 'outlined'} style={styles.tabButton} onPress={() => setTab('todos')}><Text style={{color: tab === 'todos' ? '#fff' : '#7B3FF2', textAlign: 'center'}}>Todos</Text></Button>
-        <Button mode={tab === 'seleccionados' ? 'contained' : 'outlined'} style={styles.tabButton} onPress={() => setTab('seleccionados')}><Text style={{color: tab === 'seleccionados' ? '#fff' : '#7B3FF2', textAlign: 'center'}}>Seleccionados</Text></Button>
-      </View>
-      <Card style={styles.resultadosCard}>
-        <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'}}>
-          <Text style={styles.seccionTitulo}>Resultados</Text>
-          <Text style={styles.cantidadRegistros}>{`Registros: ${tab === 'todos' ? (Array.isArray(resultados) ? resultados.length : 0) : seleccionados.length}`}</Text>
+      <View style={styles.container}>
+        <Card style={styles.filtrosCard}>
+          <TextInput
+            label="Buscar solicitante"
+            value={filtroSolicitante}
+            onChangeText={async text => {
+              setFiltroSolicitante(text);
+              setShowSuggestions(true);
+              // Consultar al backend usando el filtro
+              await cargarSolicitantes(text);
+            }}
+            onFocus={() => setShowSuggestions(true)}
+            onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+            style={{ marginBottom: 8, backgroundColor: '#fff' }}
+          />
+          {showSuggestions && filtroSolicitante.length > 0 && (
+            <Card style={{ maxHeight: 200, marginBottom: 8 }}>
+              {solicitantes.filter(s => typeof s.NombreEmpleado === 'string' && s.NombreEmpleado.toLowerCase().includes(filtroSolicitante.toLowerCase())).length === 0 ? (
+                <List.Item title="No se encontraron solicitantes" />
+              ) : (
+                solicitantes.filter(s => typeof s.NombreEmpleado === 'string' && s.NombreEmpleado.toLowerCase().includes(filtroSolicitante.toLowerCase())).map(s => (
+                  <List.Item
+                    key={String(s.IdEmpleado || s.NombreEmpleado)}
+                    title={String(s.NombreEmpleado)}
+                    onPress={() => {
+                      setFiltroSolicitante(s.NombreEmpleado);
+                      setShowSuggestions(false);
+                    }}
+                  />
+                ))
+              )}
+            </Card>
+          )}
+          <Button
+            mode="contained"
+            onPress={buscar}
+            style={{ marginTop: 8, backgroundColor: '#7B3FF2' }}
+          >
+            <Text style={{ color: '#fff', textAlign: 'center' }}>Buscar</Text>
+          </Button>
+        </Card>
+        {/* Pestañas para alternar entre todos y seleccionados */}
+        <View style={styles.tabsContainer}>
+          <Button mode={tab === 'todos' ? 'contained' : 'outlined'} style={styles.tabButton} onPress={() => setTab('todos')}><Text style={{color: tab === 'todos' ? '#fff' : '#7B3FF2', textAlign: 'center'}}>Todos</Text></Button>
+          <Button mode={tab === 'seleccionados' ? 'contained' : 'outlined'} style={styles.tabButton} onPress={() => setTab('seleccionados')}><Text style={{color: tab === 'seleccionados' ? '#fff' : '#7B3FF2', textAlign: 'center'}}>Seleccionados</Text></Button>
         </View>
-        <FlatList
-          data={tab === 'todos' ? resultados : resultados.filter(item => seleccionados.includes(String(item.Corre)))}
-          keyExtractor={(item) => {
-            // Usar el campo 'Corre' del store, que es único para cada registro
-            return String(item.Corre);
-          }}
-          renderItem={({ item }) => {
-            // Usar el campo 'Corre' como identificador único
-            const uniqueId = String(item.Corre);
-            return (
-              <View style={styles.tableRow}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <View style={styles.cellCheckbox}>
+        <Card style={styles.resultadosCard}>
+          <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'}}>
+            <Text style={styles.seccionTitulo}>Resultados</Text>
+            <Text style={styles.cantidadRegistros}>{`Registros: ${tab === 'todos' ? (Array.isArray(resultados) ? resultados.length : 0) : seleccionados.length}`}</Text>
+          </View>
+          <FlatList
+            data={tab === 'todos' ? resultados : resultados.filter(item => seleccionados.includes(String(item.Corre)))}
+            keyExtractor={(item) => {
+              // Usar el campo 'Corre' del store, que es único para cada registro
+              return String(item.Corre);
+            }}
+            renderItem={({ item }) => {
+              // Usar el campo 'Corre' como identificador único
+              const uniqueId = String(item.Corre);
+              return (
+                <Card style={{ marginBottom: 12, padding: 8 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                     <Checkbox
                       status={seleccionados.includes(uniqueId) ? 'checked' : 'unchecked'}
                       onPress={() => toggleSeleccion(uniqueId)}
                     />
+                    <Button
+                      mode="outlined"
+                      onPress={() => toggleExpandido(uniqueId)}
+                      style={{ marginLeft: 8 }}
+                    >
+                      <Text style={{ color: '#7B3FF2' }}>{expandido[uniqueId] ? 'Ocultar' : 'Ver Detalle'}</Text>
+                    </Button>
                   </View>
-                  <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}>
-                    <Text style={{ fontWeight: 'bold', color: '#7B3FF2', marginRight: 4 }}>Correlativo:</Text>
-                    <Text>{safe(item.Corre)}</Text>
+                  <View style={[styles.cell, { flexDirection: 'row', alignItems: 'center' }]}>
+                    <Text style={{marginRight: 12}}><Text style={styles.cellLabel}>Fec.Ing:</Text> {safe(item.FecIngreso)}</Text>
+                    <Text style={{marginRight: 12}}><Text style={styles.cellLabel}>Total:</Text> {safe(item.Total)} {safe(item.Moneda)}</Text>
+                    <Text><Text style={styles.cellLabel}>Responsable:</Text> {safe(item.Responsable)}</Text>
                   </View>
-                  <Button mode="text" style={[styles.expandButton, { alignSelf: 'flex-end' }]} onPress={() => toggleExpandido(uniqueId)}>
-                    <Text style={{color: '#2196F3'}}>{expandido[uniqueId] ? 'Cerrar detalle' : 'Ver detalle'}</Text>
-                  </Button>
-                  <Button
-                    mode="text"
-                    style={[styles.expandButton, { alignSelf: 'flex-end' }]}
-                    onPress={async () => {
-                      const idocVal = item.idoc;
-                      if (idocVal === null || idocVal === undefined || Number(idocVal) <= 0) {
-                        setSnackbarMsg('No existe datos registrados para la OC');
-                        setSnackbarVisible(true);
-                        return;
-                      }
-                      setLoadingDatosOc(true);
-                      setModalVisible(true);
-                      setDatosOc(null);
-                      const params = {
-                        idoc: item.idoc,
-                        fila: item.fila ? String(item.fila).split(',')[0] : '',
-                        Site: item.IdSite ? String(item.IdSite) : '',
-                        Tipo_Trabajo: item.Tipo_Trabajo ? String(item.Tipo_Trabajo) : ''
-                      };
-                      setParamsOc(params);
-                      const result = await getDatosOc(params);
-                      setDatosOc(result);
-                      setLoadingDatosOc(false);
-                      // Mostrar snackbar si la consulta retorna vacío o error
-                      if ((Array.isArray(result) && result.length === 0) || (result && result.error)) {
-                        setSnackbarMsg('No existe datos registrados para la OC');
-                        setSnackbarVisible(true);
-                        setModalVisible(false);
-                      }
-                    }}
-                    title="Datos Oc"
-                  >
-                    <Text style={{color: '#7B3FF2'}}>Datos Oc</Text>
-                  </Button>
-                </View>
-                <View style={[styles.cell, { flexDirection: 'row', alignItems: 'center' }]}> 
-                  <Text style={{marginRight: 12}}><Text className={styles.cellLabel}>Fec.Ing:</Text> {safe(item.FecIngreso)}</Text>
-                  <Text style={{marginRight: 12}}><Text style={styles.cellLabel}>Total:</Text> {safe(item.Total)} {safe(item.Moneda)}</Text>
-                  <Text><Text style={styles.cellLabel}>Responsable:</Text> {safe(item.Responsable)}</Text>
-                </View>
-                <View style={styles.cell}><Text><Text style={styles.cellLabel}>Solicitante:</Text> {safe(item.Solicitante)}</Text></View>
-                {expandido[uniqueId] && (
-                  <View style={styles.detalleCard}>
-                    <Text><Text style={styles.cellLabel}>Fec.Ing:</Text> {safe(item.FecIngreso)}</Text>
-                    <Text><Text style={styles.cellLabel}>Detalle:</Text> {safe(item.Detalle)}</Text>
-                    <Text><Text style={styles.cellLabel}>Bien/Servicio:</Text> {safe(item.Bien)}</Text>
-                    <Text><Text style={styles.cellLabel}>Comprobante:</Text> {safe(item.Comprobante)}</Text>
-                    <Text><Text style={styles.cellLabel}>Gestor:</Text> {safe(item.Gestor)}</Text>
-                    <Text><Text style={styles.cellLabel}>Proyecto:</Text> {safe(item.nombreProyecto)}</Text>
-                    <Text><Text style={styles.cellLabel}>Site:</Text> {safe(item.Site)}</Text>
-                    <Text><Text style={styles.cellLabel}>Subtotal:</Text> {safe(item.Subtotal)}</Text>
-                    <Text><Text style={styles.cellLabel}>IGV:</Text> {safe(item.IGV)}</Text>
-                    <Text><Text style={styles.cellLabel}>Estado:</Text> {safe(item.EstadoPla)}</Text>
-                    <Text><Text style={styles.cellLabel}>Observación:</Text> {safe(item.Observacion)}</Text>
-                  </View>
-                )}
-              </View>
-            );
-          }}
-        />
-      </Card>
-      {/* Botones de acción solo en la pestaña Seleccionados */}
-      {tab === 'seleccionados' && (
-        <View style={{ width: '100%' }}>
-          <View style={styles.actionButtonsRow}>
-            <Button
-              mode="contained"
-              disabled={seleccionados.length === 0}
-              style={[
-                styles.actionButtonFull,
-                { backgroundColor: seleccionados.length === 0 ? '#BDBDBD' : '#4CAF50' }
-              ]}
-              onPress={() => {
-                if (seleccionados.length === 0) {
-                  setSnackbarMsg('Debes seleccionar al menos un registro para aprobar.');
-                  setSnackbarVisible(true);
-                  return;
-                }
-                let ipLocalMod = ipLocal;
-                if (!ipLocalMod) {
-                  ipLocalMod = '192.168.0.1'; // Valor por defecto si está vacío
-                }
-                const seleccionadosData = resultados.filter(item => seleccionados.includes(String(item.Corre)));
-                // Validar montos antes de aprobar
-                const montoLimiteSoles = 2000;
-                const montoLimiteDolares = 530;
-                // Para cada registro, si el monto es mayor a 2000 SOLES o 530 DOLARES, IdEst=6, sino IdEst=1
-                const paramsList = seleccionadosData.map(item => {
-                  const monto = Number(item.Total);
-                  const moneda = (item.Moneda || '').toUpperCase();
-                  let IdEst = 1;
-                  if ((moneda.includes('SOL') && monto > 2000) || (moneda.includes('DOL') && monto > 530)) {
-                    IdEst = 6;
+                  <View style={styles.cell}><Text><Text style={styles.cellLabel}>Solicitante:</Text> {safe(item.Solicitante)}</Text></View>
+                  {expandido[uniqueId] && (
+                    <View style={styles.detalleCard}>
+                      <Text><Text style={styles.cellLabel}>Fec.Ing:</Text> {safe(item.FecIngreso)}</Text>
+                      <Text><Text style={styles.cellLabel}>Detalle:</Text> {safe(item.Detalle)}</Text>
+                      <Text><Text style={styles.cellLabel}>Bien/Servicio:</Text> {safe(item.Bien)}</Text>
+                      <Text><Text style={styles.cellLabel}>Comprobante:</Text> {safe(item.Comprobante)}</Text>
+                      <Text><Text style={styles.cellLabel}>Gestor:</Text> {safe(item.Gestor)}</Text>
+                      <Text><Text style={styles.cellLabel}>Proyecto:</Text> {safe(item.nombreProyecto)}</Text>
+                      <Text><Text style={styles.cellLabel}>Site:</Text> {safe(item.Site)}</Text>
+                      <Text><Text style={styles.cellLabel}>Subtotal:</Text> {safe(item.Subtotal)}</Text>
+                      <Text><Text style={styles.cellLabel}>IGV:</Text> {safe(item.IGV)}</Text>
+                      <Text><Text style={styles.cellLabel}>Estado:</Text> {safe(item.EstadoPla)}</Text>
+                      <Text><Text style={styles.cellLabel}>Observación:</Text> {safe(item.Observacion)}</Text>
+                    </View>
+                  )}
+                </Card>
+              );
+            }}
+          />
+        </Card>
+        {/* Botones de acción solo en la pestaña Seleccionados */}
+        {tab === 'seleccionados' && (
+          <View style={{ width: '100%' }}>
+            <View style={styles.actionButtonsRow}>
+              <Button
+                mode="contained"
+                disabled={seleccionados.length === 0}
+                style={[
+                  styles.actionButtonFull,
+                  { backgroundColor: seleccionados.length === 0 ? '#BDBDBD' : '#4CAF50' }
+                ]}
+                onPress={() => {
+                  setAccionActual('aprobar');
+                  setConfirmModalVisible(true);
+                }}
+                title="Aprobar"
+              >
+                <Text style={{ color: '#fff', textAlign: 'center' }}>Aprobar recibo</Text>
+              </Button>
+              <Button
+                mode="contained"
+                disabled={seleccionados.length === 0}
+                style={[
+                  styles.actionButtonFull,
+                  { backgroundColor: seleccionados.length === 0 ? '#BDBDBD' : '#F44336' }
+                ]}
+                onPress={() => {
+                  setRechazoConfirmVisible(true);
+                }}
+                title="Rechazar"
+              >
+                <Text style={{ color: '#fff', textAlign: 'center' }}>Rechazar</Text>
+              </Button>
+            </View>
+            <View style={styles.actionButtonsRow}>
+              <Button
+                mode="contained"
+                disabled={seleccionados.length === 0}
+                style={[
+                  styles.actionButtonFull,
+                  { backgroundColor: seleccionados.length === 0 ? '#BDBDBD' : '#FF9800' }
+                ]}
+                onPress={() => {
+                  setObservarConfirmVisible(true);
+                }}
+                title="Observar"
+              >
+                <Text style={{ color: '#fff', textAlign: 'center' }}>Observar</Text>
+              </Button>
+              <Button
+                mode="contained"
+                disabled={seleccionados.length === 0}
+                style={[
+                  styles.actionButtonFull,
+                  { backgroundColor: seleccionados.length === 0 ? '#BDBDBD' : '#2196F3' }
+                ]}
+                onPress={() => {
+                  setAccionActual('regularizar');
+                  setConfirmModalVisible(true);
+                }}
+                title="Regularizar"
+              >
+                <Text style={{ color: '#fff', textAlign: 'center' }}>Regularizar</Text>
+              </Button>
+            </View>
+          </View>
+        )}
+        <Portal>
+          {/* Modal de confirmación para rechazar */}
+          <Modal visible={rechazoConfirmVisible} onDismiss={() => setRechazoConfirmVisible(false)} contentContainerStyle={styles.modalContainer}>
+            <Text style={styles.modalTitle}>¿Está seguro que desea rechazar los pagos seleccionados?</Text>
+            <View style={{ flexDirection: 'row', justifyContent: 'flex-end', width: '100%' }}>
+              <Button mode="outlined" onPress={() => setRechazoConfirmVisible(false)}>Cancelar</Button>
+              <Button mode="contained" style={{ marginLeft: 8 }} onPress={() => {
+                setRechazoConfirmVisible(false);
+                setAccionActual('rechazar');
+                setConfirmModalVisible(true);
+              }}>Sí, rechazar</Button>
+            </View>
+          </Modal>
+          {/* Modal de confirmación para observar */}
+          <Modal visible={observarConfirmVisible} onDismiss={() => setObservarConfirmVisible(false)} contentContainerStyle={styles.modalContainer}>
+            <Text style={styles.modalTitle}>¿Está seguro que desea observar los pagos seleccionados?</Text>
+            <View style={{ flexDirection: 'row', justifyContent: 'flex-end', width: '100%' }}>
+              <Button mode="outlined" onPress={() => setObservarConfirmVisible(false)}>Cancelar</Button>
+              <Button mode="contained" style={{ marginLeft: 8 }} onPress={() => {
+                setObservarConfirmVisible(false);
+                setAccionActual('observar');
+                setConfirmModalVisible(true);
+              }}>Sí, observar</Button>
+            </View>
+          </Modal>
+          {/* Modal de confirmación para aprobar/rechazar/observar/regularizar */}
+          <Modal visible={confirmModalVisible} onDismiss={() => { setConfirmModalVisible(false); setObservacionInput(''); }} contentContainerStyle={styles.modalContainer}>
+            <Text style={styles.modalTitle}>
+              {accionActual === 'aprobar' ? 'Confirmar aprobación' : accionActual === 'rechazar' ? 'Confirmar rechazo' : accionActual === 'regularizar' ? 'Confirmar regularización' : 'Confirmar observación'}
+            </Text>
+            {(accionActual === 'rechazar' || accionActual === 'observar') && (
+              <TextInput
+                label="Ingrese observación"
+                value={observacionInput}
+                onChangeText={setObservacionInput}
+                multiline
+                numberOfLines={3}
+                style={{ marginBottom: 12, backgroundColor: '#fff', width: 300, maxWidth: '100%' }}
+                maxLength={200}
+              />
+            )}
+            <View style={{ flexDirection: 'row', justifyContent: 'flex-end', width: '100%' }}>
+              <Button mode="outlined" onPress={() => { setConfirmModalVisible(false); setObservacionInput(''); }}>Cancelar</Button>
+              <Button
+                mode="contained"
+                style={{ marginLeft: 8 }}
+                onPress={async () => {
+                  if ((accionActual === 'rechazar' || accionActual === 'observar') && !observacionInput.trim()) {
+                    setSnackbarMsg('Debe ingresar una observación.');
+                    setSnackbarVisible(true);
+                    return;
                   }
-                  return {
-                    ipLocal: String(ipLocalMod),
-                    CorFil: parseInt(item.Corre, 10),
-                    cIdSite: String(item.IdSite),
-                    IdEst,
-                    IdResponsable: item.IdResponsable !== undefined ? parseInt(item.IdResponsable, 10) : null
-                  };
-                });
-                // Si algún registro requiere re-aprobación, mostrar mensaje
-                if (paramsList.some(p => p.IdEst === 6)) {
-                  setSnackbarMsg('Monto debe pasar por RE-APROBACION');
-                  setSnackbarVisible(true);
-                  // Si quieres que igual se envíen los registros, comenta el return de abajo
-                  // return;
-                }
-                // Ejecutar directamente la aprobación sin mostrar modal de parámetros
-                (async () => {
-                  let errores = [];
-                  let sqlDebugsTemp = [];
-                  for (const params of paramsList) {
-                    try {
-                      const resp = await aprobarPlanilla(params);
-                      // Log completo de la respuesta
-                      console.log(`Respuesta API para Corre ${params.CorFil}:`, resp?.data, resp);
-                      if (resp && resp.data && resp.data.sqlDebug) {
-                        sqlDebugsTemp.push(`Corre ${params.CorFil}: ${resp.data.sqlDebug}`);
-                        // Mostrar en consola
-                        console.log(`SQL ejecutado para Corre ${params.CorFil}:`, resp.data.sqlDebug);
+                  setConfirmModalVisible(false);
+                  let ipLocalMod = ipLocal;
+                  if (!ipLocalMod) {
+                    ipLocalMod = '192.168.0.1';
+                  }
+                  const seleccionadosData = resultados.filter(item => seleccionados.includes(String(item.Corre)));
+                  let IdEstValue = 1;
+                  if (accionActual === 'rechazar') IdEstValue = 3;
+                  if (accionActual === 'observar') IdEstValue = 2;
+                  const montoLimiteSoles = 2000;
+                  const montoLimiteDolares = 530;
+                  const paramsList = seleccionadosData.map(item => {
+                    let IdEst = IdEstValue;
+                    if (accionActual === 'aprobar') {
+                      const monto = Number(item.Total);
+                      const moneda = (item.Moneda || '').toUpperCase();
+                      if ((moneda.includes('SOL') && monto > 2000) || (moneda.includes('DOL') && monto > 530)) {
+                        IdEst = 6;
                       }
-                      // Mostrar mensaje de éxito específico si viene en la respuesta
-                      if (resp && resp.data && resp.data.message) {
-                        setSnackbarMsg(`Corre ${params.CorFil}: ${resp.data.message}`);
-                        setSnackbarVisible(true);
-                      }
-                    } catch (e) {
-                      console.error(`Error en Corre ${params.CorFil}:`, e);
-                      errores.push(`Error en Corre ${params.CorFil}: ${e?.response?.data?.message || e.message}`);
                     }
+                    return {
+                      ipLocal: String(ipLocalMod),
+                      CorFil: parseInt(item.Corre, 10),
+                      cIdSite: String(item.IdSite),
+                      IdEst,
+                      IdResponsable: item.IdResponsable !== undefined ? parseInt(item.IdResponsable, 10) : null,
+                      txtOb: (accionActual === 'rechazar' || accionActual === 'observar') ? observacionInput : (item.Observacion !== undefined ? String(item.Observacion) : ''),
+                      cIdRegularizar: accionActual === 'regularizar' ? 1 : 0
+                    };
+                  });
+                  if (accionActual === 'aprobar' && paramsList.some(p => p.IdEst === 6)) {
+                    setSnackbarMsg('Monto debe pasar por RE-APROBACION');
+                    setSnackbarVisible(true);
                   }
-                  if (errores.length === 0) {
-                    setSnackbarMsg('Aprobación exitosa.');
-                  } else {
-                    setSnackbarMsg('Algunos registros no se aprobaron: ' + errores.join('; '));
-                  }
-                  setSnackbarVisible(true);
-                  cargarAprobaciones();
-                })();
-              }}
-              title="Aprobar"
-            >
-              <Text style={{ color: '#fff', textAlign: 'center' }}>Aprobar recibo</Text>
-            </Button>
-            <Button
-              mode="contained"
-              disabled={seleccionados.length === 0}
-              style={[
-                styles.actionButtonFull,
-                { backgroundColor: seleccionados.length === 0 ? '#BDBDBD' : '#F44336' }
-              ]}
-              onPress={() => {}}
-              title="Rechazar"
-            >
-              <Text style={{ color: '#fff', textAlign: 'center' }}>Rechazar</Text>
-            </Button>
-          </View>
-          <View style={styles.actionButtonsRow}>
-            <Button
-              mode="contained"
-              disabled={seleccionados.length === 0}
-              style={[
-                styles.actionButtonFull,
-                { backgroundColor: seleccionados.length === 0 ? '#BDBDBD' : '#FF9800' }
-              ]}
-              onPress={() => {}}
-              title="Observar"
-            >
-              <Text style={{ color: '#fff', textAlign: 'center' }}>Observar</Text>
-            </Button>
-            <Button
-              mode="contained"
-              disabled={seleccionados.length === 0}
-              style={[
-                styles.actionButtonFull,
-                { backgroundColor: seleccionados.length === 0 ? '#BDBDBD' : '#2196F3' }
-              ]}
-              onPress={() => {}}
-              title="Regularizar"
-            >
-              <Text style={{ color: '#fff', textAlign: 'center' }}>Regularizar</Text>
-            </Button>
-          </View>
-        </View>
-      )}
-      <Portal>
-        <Modal visible={modalVisible} onDismiss={() => setModalVisible(false)} contentContainerStyle={styles.modalContainer}>
-          <Text style={styles.modalTitle}>Datos OC</Text>
-          {loadingDatosOc && <ActivityIndicator animating size="large" style={{marginVertical: 16}} />}
-          {!loadingDatosOc && datosOc && Array.isArray(datosOc) && datosOc.length > 0 && (
-            datosOc.map((row, idx) => (
-              <View key={idx} style={{marginBottom: 12}}>
-                {Object.entries(row)
-                  .filter(([key]) => key !== 'IdMoneda')
-                  .map(([key, value]) => {
-                    let label = key;
-                    if (key === 'idoc') label = 'OC';
-                    else if (key === 'SubOc') label = 'Monto OC';
-                    else if (key === 'SubPlanilla') label = 'Monto Pago';
-                    else if (key === 'Porce') label = 'Porcentaje';
-                    return (
-                      <Text key={key}><Text style={styles.cellLabel}>{label}:</Text> {String(value ?? '')}</Text>
-                    );
-                  })}
-              </View>
-            ))
-          )}
-          {!loadingDatosOc && datosOc && Array.isArray(datosOc) && datosOc.length === 0 && (
-            <Text>No hay resultados para la OC.</Text>
-          )}
-          {!loadingDatosOc && datosOc && datosOc.error && (
-            <Text style={{color: 'red'}}>Error: {datosOc.message}</Text>
-          )}
-          <Button mode="contained" onPress={() => setModalVisible(false)} style={{marginTop: 16}}>Cerrar</Button>
-        </Modal>
-        <Snackbar
-          visible={snackbarVisible}
-          onDismiss={() => setSnackbarVisible(false)}
-          duration={2500}
-          style={{backgroundColor: snackbarMsg.includes('exitosa') ? '#4CAF50' : '#F44336'}}
-        >
-          {snackbarMsg}
-        </Snackbar>
-
-        {/* Modal para mostrar SQL Debug */}
-        <Modal visible={sqlDebugModalVisible} onDismiss={() => setSqlDebugModalVisible(false)} contentContainerStyle={styles.modalContainer}>
-          <Text style={styles.modalTitle}>SQL ejecutado</Text>
-          {sqlDebugs.length > 0 ? sqlDebugs.map((sql, idx) => (
-            <Text key={idx} style={{marginBottom: 8, fontSize: 12, color: '#333'}}>{sql}</Text>
-          )) : <Text>No hay SQL para mostrar.</Text>}
-          <Button mode="contained" style={{marginTop: 12}} onPress={() => setSqlDebugModalVisible(false)}>Cerrar</Button>
-        </Modal>
-      </Portal>
-    </View>
+                  (async () => {
+                    let errores = [];
+                    let sqlDebugsTemp = [];
+                    for (const params of paramsList) {
+                      try {
+                        const resp = await aprobarPlanilla(params);
+                        if (resp && resp.data && resp.data.sqlDebug) {
+                          sqlDebugsTemp.push(`Corre ${params.CorFil}: ${resp.data.sqlDebug}`);
+                          console.log(`SQL ejecutado para Corre ${params.CorFil}:`, resp.data.sqlDebug);
+                        }
+                        if (resp && resp.data && resp.data.message) {
+                          setSnackbarMsg(`Corre ${params.CorFil}: ${resp.data.message}`);
+                          setSnackbarVisible(true);
+                        }
+                      } catch (e) {
+                        console.error(`Error en Corre ${params.CorFil}:`, e);
+                        errores.push(`Error en Corre ${params.CorFil}: ${e?.response?.data?.message || e.message}`);
+                      }
+                    }
+                    if (errores.length === 0) {
+                      setSnackbarMsg(accionActual === 'aprobar' ? 'Aprobación exitosa.' : accionActual === 'rechazar' ? 'Rechazo exitoso.' : accionActual === 'regularizar' ? 'Regularización exitosa.' : 'Observación exitosa.');
+                    } else {
+                      setSnackbarMsg('Algunos registros no se procesaron: ' + errores.join('; '));
+                    }
+                    setSnackbarVisible(true);
+                    cargarAprobaciones();
+                  })();
+                  setObservacionInput('');
+                }}
+              >
+                {accionActual === 'aprobar' ? 'Aprobar' : accionActual === 'rechazar' ? 'Rechazar' : accionActual === 'regularizar' ? 'Regularizar' : 'Observar'}
+              </Button>
+            </View>
+          </Modal>
+          {/* Modal Datos OC */}
+          <Modal visible={modalVisible} onDismiss={() => setModalVisible(false)} contentContainerStyle={styles.modalContainer}>
+            <Text style={styles.modalTitle}>Datos OC</Text>
+            {loadingDatosOc && <ActivityIndicator animating size="large" style={{marginVertical: 16}} />}
+            {!loadingDatosOc && datosOc && Array.isArray(datosOc) && datosOc.length > 0 && (
+              datosOc.map((row, idx) => (
+                <View key={idx} style={{marginBottom: 12}}>
+                  {Object.entries(row)
+                    .filter(([key]) => key !== 'IdMoneda')
+                    .map(([key, value]) => {
+                      let label = key;
+                      if (key === 'idoc') label = 'OC';
+                      else if (key === 'SubOc') label = 'Monto OC';
+                      else if (key === 'SubPlanilla') label = 'Monto Pago';
+                      else if (key === 'Porce') label = 'Porcentaje';
+                      return (
+                        <Text key={key}><Text style={styles.cellLabel}>{label}:</Text> {String(value ?? '')}</Text>
+                      );
+                    })}
+                </View>
+              ))
+            )}
+            {!loadingDatosOc && datosOc && Array.isArray(datosOc) && datosOc.length === 0 && (
+              <Text>No hay resultados para la OC.</Text>
+            )}
+            {!loadingDatosOc && datosOc && datosOc.error && (
+              <Text style={{color: 'red'}}>Error: {datosOc.message}</Text>
+            )}
+            <Button mode="contained" onPress={() => setModalVisible(false)} style={{marginTop: 16}}>Cerrar</Button>
+          </Modal>
+          {/* Snackbar */}
+          <Snackbar
+            visible={snackbarVisible}
+            onDismiss={() => setSnackbarVisible(false)}
+            duration={2500}
+            style={{backgroundColor: snackbarMsg.includes('exitosa') ? '#4CAF50' : '#F44336'}}
+          >
+            {snackbarMsg}
+          </Snackbar>
+          {/* Modal para mostrar SQL Debug */}
+          <Modal visible={sqlDebugModalVisible} onDismiss={() => setSqlDebugModalVisible(false)} contentContainerStyle={styles.modalContainer}>
+            <Text style={styles.modalTitle}>SQL ejecutado</Text>
+            {sqlDebugs.length > 0 ? sqlDebugs.map((sql, idx) => (
+              <Text key={idx} style={{marginBottom: 8, fontSize: 12, color: '#333'}}>{sql}</Text>
+            )) : <Text>No hay SQL para mostrar.</Text>}
+            <Button mode="contained" style={{marginTop: 12}} onPress={() => setSqlDebugModalVisible(false)}>Cerrar</Button>
+          </Modal>
+        </Portal>
+      </View>
     </Provider>
   );
 }
