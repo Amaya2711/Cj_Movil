@@ -1,7 +1,9 @@
 import React, { useState, useContext } from 'react';
 import { View, StyleSheet, Image, Platform } from 'react-native';
 import { TextInput, Button, Card, Snackbar } from 'react-native-paper';
+
 import axios from 'axios';
+import { BASE_URL } from '../config';
 import { UserContext } from '../context/UserContext';
 
 // Carga segura de expo-network (no web)
@@ -14,8 +16,10 @@ if (Platform.OS !== 'web') {
 // Logo (Expo maneja web / android / ios)
 const CJTelecomLogo = require('../../assets/logoCj.png');
 
-// URL pública del backend
-const API_URL = 'https://cjmovil-production.up.railway.app/api/auth/login';
+
+// Construcción de la URL del backend de forma consistente
+const API_PATH = '/api/auth/login';
+const API_URL = `${BASE_URL}${API_PATH}`;
 
 export default function LoginScreen({ navigation }) {
   const [usuario, setUsuario] = useState('');
@@ -70,7 +74,8 @@ export default function LoginScreen({ navigation }) {
       } else {
         setError(err.message);
       }
-      console.error(err);
+      // No mostrar el error de Axios en consola para evitar doble mensaje
+      // console.error(err);
     } finally {
       setLoading(false);
     }

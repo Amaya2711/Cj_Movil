@@ -55,12 +55,16 @@ export default function AprobarPagosScreen() {
       });
       const duplicados = Object.entries(comboCount).filter(([k, v]) => v > 1);
       if (duplicados.length > 0) {
+        console.warn('Registros con la misma llave (Corre + IdSite):');
+        let mensaje = 'Duplicados Corre-IdSite: ';
         duplicados.forEach(([combo]) => {
           const items = comboItems[combo];
           items.forEach(item => {
-            console.warn(`Duplicado encontrado -> Corre: ${item.Corre}, IdSite: ${item.IdSite}`, item);
+            console.warn(`Corre: ${item.Corre}, IdSite: ${item.IdSite}`);
+            mensaje += `[${item.Corre},${item.IdSite}] `;
           });
         });
+        // Ya no se muestra el mensaje de duplicados automáticamente en el Snackbar
       }
     }
   }, [resultados]);
@@ -142,6 +146,7 @@ export default function AprobarPagosScreen() {
        setSnackbarVisible(true);
        return;
      }
+     // Ya no se realiza la validación ni se muestra mensaje de advertencia al seleccionar registros
      setSeleccionados(prev =>
        prev.includes(id) ? prev.filter(sid => sid !== id) : [...prev, id]
      );
@@ -151,7 +156,13 @@ export default function AprobarPagosScreen() {
      setExpandido(prev => ({ ...prev, [id]: !prev[id] }));
    };
 
-  const safe = v => (v === undefined || v === null ? '' : String(v));
+  const safe = v => {
+    if (v === undefined || v === null) return '';
+    if (typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean') return String(v);
+    if (Array.isArray(v)) return v.join(', ');
+    if (typeof v === 'object') return JSON.stringify(v);
+    return String(v);
+  };
 
   return (
     <Provider>
@@ -222,8 +233,8 @@ export default function AprobarPagosScreen() {
           <FlatList
             data={tab === 'todos' ? resultados : resultados.filter(item => seleccionados.includes(String(item.Corre)))}
             keyExtractor={(item) => {
-              // Usar el campo 'Corre' del store, que es único para cada registro
-              return String(item.Corre);
+              // Usar la concatenación de 'Corre' e 'IdSite' como key única
+              return `${String(item.Corre)}_${String(item.IdSite)}`;
             }}
             renderItem={({ item }) => {
               // ...existing code...
@@ -254,12 +265,14 @@ export default function AprobarPagosScreen() {
                         onPress={async () => {
                           setLoadingDatosOc(true);
                           setModalVisible(true);
+                          // Guardar el registro completo para mostrar Total y Moneda
+                          setParamsOc(item);
                           try {
                             // Extraer parámetros correctos del item
-                            const idoc = item.IdOc || item.idoc || item.OC || item.idOC || '';
-                            const fila = item.Fila || item.fila || '';
-                            const IdSite = item.IdSite || item.Site || '';
-                            const Tipo_Trabajo = item.Tipo_Trabajo || item.TipoTrabajo || item.tipo_trabajo || '';
+                            const idoc = safe(item.IdOc) || safe(item.idoc) || safe(item.OC) || safe(item.idOC) || '';
+                            const fila = safe(item.Fila) || safe(item.fila) || '';
+                            const IdSite = safe(item.IdSite) || safe(item.Site) || '';
+                            const Tipo_Trabajo = safe(item.Tipo_Trabajo) || safe(item.TipoTrabajo) || safe(item.tipo_trabajo) || '';
                             const data = await getDatosOc({ idoc, fila, IdSite, Tipo_Trabajo });
                             setDatosOc(data);
                           } catch (e) {
@@ -277,10 +290,16 @@ export default function AprobarPagosScreen() {
                   </View>
                   <View style={[styles.cell, { flexDirection: 'row', alignItems: 'center' }]}> 
                     <Text style={{marginRight: 12, fontSize: 13}}><Text style={styles.cellLabel}>Fecha:</Text> {safe(item.FecIngreso)}</Text>
-                    <Text style={{marginRight: 12, fontSize: 13}}><Text style={styles.cellLabel}>Total:</Text> {safe(item.Total)} {safe(item.Moneda)}</Text>
+                    <Text style={{marginRight: 12, fontSize: 13}}><Text style={styles.cellLabel}>Total:</Text> {safe(item.Subtotal)} {safe(item.Moneda)}</Text>
                   </View>
-                  <View style={styles.cell}><Text style={{fontSize: 13}}><Text style={styles.cellLabel}>Solicitante:</Text> {safe(item.Solicitante)}</Text></View>
-                  <View style={styles.cell}><Text style={{fontSize: 13}}><Text style={styles.cellLabel}>Responsable:</Text> {safe(item.Responsable)}</Text></View>
+                  <View style={styles.cell}><Text style={{fontSize: 13}}><Text style={styles.cellLabel}>Sol.:</Text> {safe(item.Solicitante)}</Text></View>
+                  <View style={styles.cell}><Text style={{fontSize: 13}}>{safe(item.Responsable)}</Text></View>
+                  {/* Mostrar Monto OC (SubOc) si existe */}
+                  {item.SubOc !== undefined && item.SubOc !== null && item.SubOc !== '' && (
+                    <View style={styles.cell}>
+                      <Text style={{fontSize: 13}}><Text style={styles.cellLabel}>Monto OC:</Text> {safe(item.SubOc)} {safe(item.Moneda)}</Text>
+                    </View>
+                  )}
                   {expandido[uniqueId] && (
                     <View style={styles.detalleCard}>
                       <Text style={{fontSize: 13}}><Text style={styles.cellLabel}>Fecha:</Text> {safe(item.FecIngreso)}</Text>
@@ -294,6 +313,7 @@ export default function AprobarPagosScreen() {
                       <Text style={{fontSize: 13}}><Text style={styles.cellLabel}>IGV:</Text> {safe(item.IGV)}</Text>
                       <Text style={{fontSize: 13}}><Text style={styles.cellLabel}>Estado:</Text> {safe(item.EstadoPla)}</Text>
                       <Text style={{fontSize: 13}}><Text style={styles.cellLabel}>Observación:</Text> {safe(item.Observacion)}</Text>
+                      <Text style={{fontSize: 13, color: '#7B3FF2', fontWeight: 'bold'}}><Text style={styles.cellLabel}>Total del registro:</Text> {safe(item.Subtotal)}</Text>
                     </View>
                   )}
                 </Card>
@@ -490,22 +510,50 @@ export default function AprobarPagosScreen() {
             <Text style={styles.modalTitle}>Datos OC</Text>
             {loadingDatosOc && <ActivityIndicator animating size="large" style={{marginVertical: 16}} />}
             {!loadingDatosOc && datosOc && Array.isArray(datosOc) && datosOc.length > 0 && (
-              datosOc.map((row, idx) => (
-                <View key={idx} style={{marginBottom: 12}}>
-                  {Object.entries(row)
-                    .filter(([key]) => key !== 'IdMoneda')
-                    .map(([key, value]) => {
-                      let label = key;
-                      if (key === 'idoc') label = 'OC';
-                      else if (key === 'SubOc') label = 'Monto OC';
-                      else if (key === 'SubPlanilla') label = 'Monto Pago';
-                      else if (key === 'Porce') label = 'Porcentaje';
-                      return (
-                        <Text key={key}><Text style={styles.cellLabel}>{label}:</Text> {String(value ?? '')}</Text>
-                      );
-                    })}
-                </View>
-              ))
+              datosOc.map((row, idx) => {
+                // Buscar el registro original seleccionado para mostrar el Total
+                let registroOriginal = null;
+                if (paramsOc && paramsOc.Total !== undefined) {
+                  registroOriginal = paramsOc;
+                } else if (paramsOc && paramsOc.Corre && resultados && Array.isArray(resultados)) {
+                  registroOriginal = resultados.find(r => String(r.Corre) === String(paramsOc.Corre));
+                }
+                return (
+                  <View key={idx} style={{marginBottom: 12}}>
+                    {Object.entries(row)
+                      .filter(([key]) => key !== 'IdMoneda')
+                      .map(([key, value]) => {
+                        let label = key;
+                        if (key === 'idoc') label = 'OC';
+                        else if (key === 'SubOc') label = 'Monto OC';
+                        else if (key === 'SubPlanilla') label = 'Monto Pago';
+                        else if (key === 'Porce') label = 'Porcentaje';
+                        return (
+                          <Text key={key}><Text style={styles.cellLabel}>{label}:</Text> {String(value ?? '')}</Text>
+                        );
+                      })}
+                    {registroOriginal && (
+                      <>
+                        <Text style={{fontWeight:'bold', color:'#7B3FF2', marginTop: 8}}>
+                          <Text style={styles.cellLabel}>Total del registro:</Text> {registroOriginal.Subtotal} {registroOriginal.Moneda}
+                        </Text>
+                        {row.SubPlanilla !== undefined && !isNaN(Number(row.SubPlanilla)) && !isNaN(Number(registroOriginal.Subtotal)) && (
+                          (() => {
+                            const montoPagoFicticio = Number(row.SubPlanilla) + Number(registroOriginal.Subtotal);
+                            const montoOc = Number(row.SubOc);
+                            const color = montoPagoFicticio > montoOc ? 'red' : 'black';
+                            return (
+                              <Text style={{fontWeight:'bold', color, marginTop: 4}}>
+                                <Text style={styles.cellLabel}>Monto Pago ficticio:</Text> {montoPagoFicticio} {registroOriginal.Moneda}
+                              </Text>
+                            );
+                          })()
+                        )}
+                      </>
+                    )}
+                  </View>
+                );
+              })
             )}
             {!loadingDatosOc && datosOc && Array.isArray(datosOc) && datosOc.length === 0 && (
               <Text>No hay resultados para la OC.</Text>
@@ -516,13 +564,14 @@ export default function AprobarPagosScreen() {
             <Button mode="contained" onPress={() => setModalVisible(false)} style={{marginTop: 16}}><Text style={{ color: '#fff' }}>Cerrar</Text></Button>
           </Modal>
           {/* Snackbar */}
+          {(() => { if (typeof snackbarMsg !== 'string') { console.warn('snackbarMsg no string:', snackbarMsg); } return null; })()}
           <Snackbar
             visible={snackbarVisible}
             onDismiss={() => setSnackbarVisible(false)}
             duration={2500}
-            style={{backgroundColor: snackbarMsg.includes('exitosa') ? '#4CAF50' : '#F44336'}}
+            style={{backgroundColor: snackbarMsg && snackbarMsg.includes('exitosa') ? '#4CAF50' : '#F44336'}}
           >
-            {snackbarMsg}
+            {safe(snackbarMsg)}
           </Snackbar>
           {/* Modal para mostrar SQL Debug */}
           <Modal visible={sqlDebugModalVisible} onDismiss={() => setSqlDebugModalVisible(false)} contentContainerStyle={styles.modalContainer}>
