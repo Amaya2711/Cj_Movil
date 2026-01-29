@@ -138,18 +138,67 @@ export default function AprobarPagosScreen() {
 
   // ...existing code...
 
-   const toggleSeleccion = (id) => {
-     // Buscar el registro correspondiente
+   const toggleSeleccion = async (id) => {
+    console.log('toggleSeleccion INICIO:', { id });
+    setModalVisible(false);
      const registro = resultados.find(item => String(item.Corre) === String(id));
      if (!registro || registro.IdResponsable === undefined || registro.IdResponsable === null || registro.IdResponsable === '') {
        setSnackbarMsg('No se puede seleccionar: falta IdResponsable');
        setSnackbarVisible(true);
        return;
      }
-     // Ya no se realiza la validación ni se muestra mensaje de advertencia al seleccionar registros
-     setSeleccionados(prev =>
-       prev.includes(id) ? prev.filter(sid => sid !== id) : [...prev, id]
-     );
+     // Utilidad para extraer solo el valor numérico de un string
+     const getNumber = (val) => {
+       if (typeof val === 'number') return val;
+       if (typeof val === 'string') {
+         const match = val.match(/[-+]?[0-9]*\.?[0-9]+/);
+         return match ? Number(match[0]) : 0;
+       }
+       return 0;
+     };
+     setSeleccionados(prev => {
+       const yaSeleccionado = prev.includes(id);
+       console.log('toggleSeleccion:', { id, yaSeleccionado, tab });
+       if (!yaSeleccionado && tab === 'todos') {
+         (async () => {
+           try {
+             const idoc = safe(registro.IdOc) || safe(registro.idoc) || safe(registro.OC) || safe(registro.idOC) || '';
+             const fila = safe(registro.Fila) || safe(registro.fila) || '';
+             const IdSite = safe(registro.IdSite) || safe(registro.Site) || '';
+             const Tipo_Trabajo = safe(registro.Tipo_Trabajo) || safe(registro.TipoTrabajo) || safe(registro.tipo_trabajo) || '';
+             const data = await getDatosOc({ idoc, fila, IdSite, Tipo_Trabajo });
+             let registroOriginal = registro;
+             if (!registroOriginal && registro.Corre && resultados && Array.isArray(resultados)) {
+               registroOriginal = resultados.find(r => String(r.Corre) === String(registro.Corre));
+             }
+             if (Array.isArray(data) && data.length > 0 && registroOriginal) {
+               const row = data[0];
+               const subPlanilla = getNumber(row.SubPlanilla);
+               const subtotal = getNumber(registroOriginal.Subtotal);
+               const montoPagoFicticio = subPlanilla + subtotal;
+               const montoOc = getNumber(row.SubOc);
+               // Debug log para ver los valores
+               console.log('--- VALIDACIÓN DE MONTOS AL SELECCIONAR REGISTRO ---');
+               console.log('Corre:', registro.Corre);
+               console.log('SubPlanilla:', subPlanilla);
+               console.log('Subtotal:', subtotal);
+               console.log('Monto Pago ficticio (SubPlanilla + Subtotal):', montoPagoFicticio);
+               console.log('Monto OC (SubOc):', montoOc);
+               console.log('---------------------------------------------------');
+               if (subPlanilla === 0 || montoOc === 0) return; // No mostrar modal si no hay datos válidos
+               if (montoPagoFicticio > montoOc) {
+                 setParamsOc(registro);
+                 setDatosOc(data);
+                 setModalVisible(true);
+               }
+             }
+           } catch (e) {
+             console.error('Error en toggleSeleccion al consultar datos OC o validar montos:', e);
+           }
+         })();
+       }
+       return yaSeleccionado ? prev.filter(sid => sid !== id) : [...prev, id];
+     });
    };
 
    const toggleExpandido = (id) => {
@@ -231,10 +280,10 @@ export default function AprobarPagosScreen() {
             <Text style={styles.cantidadRegistros}>{`Registros: ${tab === 'todos' ? (Array.isArray(resultados) ? resultados.length : 0) : seleccionados.length}`}</Text>
           </View>
           <FlatList
-            data={tab === 'todos' ? resultados : resultados.filter(item => seleccionados.includes(String(item.Corre)))}
+            data={Array.isArray(tab === 'todos' ? resultados : resultados.filter(item => seleccionados.includes(String(item.Corre)))) ? (tab === 'todos' ? resultados : resultados.filter(item => seleccionados.includes(String(item.Corre)))) : []}
             keyExtractor={(item) => {
               // Usar la concatenación de 'Corre' e 'IdSite' como key única
-              return `${String(item.Corre)}_${String(item.IdSite)}`;
+              return `${safe(item.Corre)}_${safe(item.IdSite)}`;
             }}
             renderItem={({ item }) => {
               // ...existing code...
@@ -249,6 +298,7 @@ export default function AprobarPagosScreen() {
                         onPress={() => toggleSeleccion(uniqueId)}
                       />
                       <Text style={{ fontSize: 12, color: '#888', fontWeight: 'bold', marginLeft: 2 }}>Nro: {safe(item.Corre)}</Text>
+                      {/* Eliminado: mensaje 'Seleccionado' visual, solo popup/snackbar */}
                     </View>
                     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                       <Button
@@ -265,10 +315,8 @@ export default function AprobarPagosScreen() {
                         onPress={async () => {
                           setLoadingDatosOc(true);
                           setModalVisible(true);
-                          // Guardar el registro completo para mostrar Total y Moneda
                           setParamsOc(item);
                           try {
-                            // Extraer parámetros correctos del item
                             const idoc = safe(item.IdOc) || safe(item.idoc) || safe(item.OC) || safe(item.idOC) || '';
                             const fila = safe(item.Fila) || safe(item.fila) || '';
                             const IdSite = safe(item.IdSite) || safe(item.Site) || '';
@@ -319,7 +367,7 @@ export default function AprobarPagosScreen() {
                 </Card>
               );
             }}
-            ListEmptyComponent={<Text style={{ textAlign: 'center', color: '#888', marginVertical: 16 }}>No hay registros para mostrar.</Text>}
+
           />
         </Card>
         {/* Botones de acción solo en la pestaña Seleccionados */}
@@ -332,7 +380,7 @@ export default function AprobarPagosScreen() {
                 style={[
                   styles.actionButtonFull,
                   { backgroundColor: seleccionados.length === 0 ? '#BDBDBD' : '#4CAF50' }
-                ]}
+                ].filter(Boolean)}
                 onPress={() => {
                   setAccionActual('aprobar');
                   setConfirmModalVisible(true);
@@ -346,7 +394,7 @@ export default function AprobarPagosScreen() {
                 style={[
                   styles.actionButtonFull,
                   { backgroundColor: seleccionados.length === 0 ? '#BDBDBD' : '#F44336' }
-                ]}
+                ].filter(Boolean)}
                 onPress={() => {
                   setRechazoConfirmVisible(true);
                 }}
@@ -361,7 +409,7 @@ export default function AprobarPagosScreen() {
                 style={[
                   styles.actionButtonFull,
                   { backgroundColor: seleccionados.length === 0 ? '#BDBDBD' : '#FF9800' }
-                ]}
+                ].filter(Boolean)}
                 onPress={() => {
                   setObservarConfirmVisible(true);
                 }}
@@ -374,7 +422,7 @@ export default function AprobarPagosScreen() {
                 style={[
                   styles.actionButtonFull,
                   { backgroundColor: seleccionados.length === 0 ? '#BDBDBDBD' : '#2196F3' }
-                ]}
+                ].filter(Boolean)}
                 onPress={() => {
                   setAccionActual('regularizar');
                   setConfirmModalVisible(true);
@@ -518,6 +566,13 @@ export default function AprobarPagosScreen() {
                 } else if (paramsOc && paramsOc.Corre && resultados && Array.isArray(resultados)) {
                   registroOriginal = resultados.find(r => String(r.Corre) === String(paramsOc.Corre));
                 }
+                // Calcular montos para mostrar explícitamente
+                let montoPagoFicticio = null;
+                let montoPago = null;
+                if (row.SubPlanilla !== undefined && registroOriginal && !isNaN(Number(row.SubPlanilla)) && !isNaN(Number(registroOriginal.Subtotal))) {
+                  montoPagoFicticio = Number(row.SubPlanilla) + Number(registroOriginal.Subtotal);
+                  montoPago = Number(row.SubPlanilla);
+                }
                 return (
                   <View key={idx} style={{marginBottom: 12}}>
                     {Object.entries(row)
@@ -537,17 +592,15 @@ export default function AprobarPagosScreen() {
                         <Text style={{fontWeight:'bold', color:'#7B3FF2', marginTop: 8}}>
                           <Text style={styles.cellLabel}>Total del registro:</Text> {registroOriginal.Subtotal} {registroOriginal.Moneda}
                         </Text>
-                        {row.SubPlanilla !== undefined && !isNaN(Number(row.SubPlanilla)) && !isNaN(Number(registroOriginal.Subtotal)) && (
-                          (() => {
-                            const montoPagoFicticio = Number(row.SubPlanilla) + Number(registroOriginal.Subtotal);
-                            const montoOc = Number(row.SubOc);
-                            const color = montoPagoFicticio > montoOc ? 'red' : 'black';
-                            return (
-                              <Text style={{fontWeight:'bold', color, marginTop: 4}}>
-                                <Text style={styles.cellLabel}>Monto Pago ficticio:</Text> {montoPagoFicticio} {registroOriginal.Moneda}
-                              </Text>
-                            );
-                          })()
+                        {montoPagoFicticio !== null && montoPago !== null && (
+                          <>
+                            <Text style={{fontWeight:'bold', color:'#F44336', marginTop: 4}}>
+                              <Text style={styles.cellLabel}>Monto Pago ficticio:</Text> {montoPagoFicticio} {registroOriginal.Moneda}
+                            </Text>
+                            <Text style={{fontWeight:'bold', color:'#2196F3', marginTop: 4}}>
+                              <Text style={styles.cellLabel}>Monto Pago:</Text> {montoPago} {registroOriginal.Moneda}
+                            </Text>
+                          </>
                         )}
                       </>
                     )}
@@ -571,7 +624,7 @@ export default function AprobarPagosScreen() {
             duration={2500}
             style={{backgroundColor: snackbarMsg && snackbarMsg.includes('exitosa') ? '#4CAF50' : '#F44336'}}
           >
-            {safe(snackbarMsg)}
+            {typeof snackbarMsg === 'string' ? snackbarMsg : ''}
           </Snackbar>
           {/* Modal para mostrar SQL Debug */}
           <Modal visible={sqlDebugModalVisible} onDismiss={() => setSqlDebugModalVisible(false)} contentContainerStyle={styles.modalContainer}>
