@@ -157,50 +157,63 @@ export default function AprobarPagosScreen() {
     <Provider>
       <View style={styles.container}>
         <Card style={styles.filtrosCard}>
-          <TextInput
-            label="Buscar solicitante"
-            value={filtroSolicitante}
-            onChangeText={async text => {
-              setFiltroSolicitante(text);
-              setShowSuggestions(true);
-              // Consultar al backend usando el filtro
-              await cargarSolicitantes(text);
-            }}
-            onFocus={() => setShowSuggestions(true)}
-            onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-            style={{ marginBottom: 8, backgroundColor: '#fff' }}
-          />
-          {showSuggestions && filtroSolicitante.length > 0 && (
-            <Card style={{ maxHeight: 200, marginBottom: 8 }}>
-              {solicitantes.filter(s => typeof s.NombreEmpleado === 'string' && s.NombreEmpleado.toLowerCase().includes(filtroSolicitante.toLowerCase())).length === 0 ? (
-                <List.Item title="No se encontraron solicitantes" />
-              ) : (
-                solicitantes.filter(s => typeof s.NombreEmpleado === 'string' && s.NombreEmpleado.toLowerCase().includes(filtroSolicitante.toLowerCase())).map(s => (
-                  <List.Item
-                    key={String(s.IdEmpleado || s.NombreEmpleado)}
-                    title={String(s.NombreEmpleado)}
-                    onPress={() => {
-                      setFiltroSolicitante(s.NombreEmpleado);
-                      setShowSuggestions(false);
-                    }}
-                  />
-                ))
+          <View style={styles.filtrosRow}>
+            <View style={{ flex: 1 }}>
+              <TextInput
+                label="Buscar solicitante"
+                value={filtroSolicitante}
+                onChangeText={async text => {
+                  setFiltroSolicitante(text);
+                  setShowSuggestions(true);
+                  // Consultar al backend usando el filtro
+                  await cargarSolicitantes(text);
+                }}
+                onFocus={() => setShowSuggestions(true)}
+                onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                style={{ backgroundColor: '#fff', marginRight: 4, minHeight: 40 }}
+                dense={true}
+              />
+              {showSuggestions && filtroSolicitante.length > 0 && (
+                <Card style={{ maxHeight: 200, marginBottom: 8 }}>
+                  {solicitantes.filter(s => typeof s.NombreEmpleado === 'string' && s.NombreEmpleado.toLowerCase().includes(filtroSolicitante.toLowerCase())).length === 0 ? (
+                    <List.Item title="No se encontraron solicitantes" />
+                  ) : (
+                    solicitantes.filter(s => typeof s.NombreEmpleado === 'string' && s.NombreEmpleado.toLowerCase().includes(filtroSolicitante.toLowerCase())).map(s => (
+                      <List.Item
+                        key={String(s.IdEmpleado || s.NombreEmpleado)}
+                        title={String(s.NombreEmpleado)}
+                        onPress={() => {
+                          setFiltroSolicitante(s.NombreEmpleado);
+                          setShowSuggestions(false);
+                        }}
+                      />
+                    ))
+                  )}
+                </Card>
               )}
-            </Card>
-          )}
-          <Button
-            mode="contained"
-            onPress={buscar}
-            style={{ marginTop: 8, backgroundColor: '#7B3FF2' }}
-          >
-            <Text style={{ color: '#fff', textAlign: 'center' }}>Buscar</Text>
-          </Button>
+            </View>
+            <Button
+              mode="contained"
+              onPress={buscar}
+              style={styles.searchButton}
+              icon={({ size, color }) => (
+                <View style={{ justifyContent: 'center', alignItems: 'center', width: 24, height: 24 }}>
+                  <List.Icon icon="magnify" color="#fff" style={{ margin: 0, padding: 0 }} />
+                </View>
+              )}
+              contentStyle={{ flexDirection: 'row-reverse', height: 36, justifyContent: 'center', alignItems: 'center' }}
+              accessibilityLabel="Buscar"
+            />
+          </View>
+          <View style={styles.tabsContainerRow}>
+            <Button mode={tab === 'todos' ? 'contained' : 'outlined'} style={styles.tabButton} onPress={() => setTab('todos')}>
+              <Text style={{color: tab === 'todos' ? '#fff' : '#7B3FF2', textAlign: 'center', fontSize: 13}}>Pendientes</Text>
+            </Button>
+            <Button mode={tab === 'seleccionados' ? 'contained' : 'outlined'} style={styles.tabButton} onPress={() => setTab('seleccionados')}>
+              <Text style={{color: tab === 'seleccionados' ? '#fff' : '#7B3FF2', textAlign: 'center', fontSize: 13}}>Seleccionados</Text>
+            </Button>
+          </View>
         </Card>
-        {/* Pestañas para alternar entre todos y seleccionados */}
-        <View style={styles.tabsContainer}>
-          <Button mode={tab === 'todos' ? 'contained' : 'outlined'} style={styles.tabButton} onPress={() => setTab('todos')}><Text style={{color: tab === 'todos' ? '#fff' : '#7B3FF2', textAlign: 'center'}}>Todos</Text></Button>
-          <Button mode={tab === 'seleccionados' ? 'contained' : 'outlined'} style={styles.tabButton} onPress={() => setTab('seleccionados')}><Text style={{color: tab === 'seleccionados' ? '#fff' : '#7B3FF2', textAlign: 'center'}}>Seleccionados</Text></Button>
-        </View>
         <Card style={styles.resultadosCard}>
           <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'}}>
             <Text style={styles.seccionTitulo}>Resultados</Text>
@@ -213,47 +226,80 @@ export default function AprobarPagosScreen() {
               return String(item.Corre);
             }}
             renderItem={({ item }) => {
-              // Usar el campo 'Corre' como identificador único
+              // ...existing code...
               const uniqueId = String(item.Corre);
               return (
                 <Card style={{ marginBottom: 12, padding: 8 }}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <Checkbox
-                      status={seleccionados.includes(uniqueId) ? 'checked' : 'unchecked'}
-                      onPress={() => toggleSeleccion(uniqueId)}
-                    />
-                    <Button
-                      mode="outlined"
-                      onPress={() => toggleExpandido(uniqueId)}
-                      style={{ marginLeft: 8 }}
-                    >
-                      <Text style={{ color: '#7B3FF2' }}>{expandido[uniqueId] ? 'Ocultar' : 'Ver Detalle'}</Text>
-                    </Button>
+                  {/* Check primero, luego Corre */}
+                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                      <Checkbox
+                        status={seleccionados.includes(uniqueId) ? 'checked' : 'unchecked'}
+                        onPress={() => toggleSeleccion(uniqueId)}
+                      />
+                      <Text style={{ fontSize: 12, color: '#888', fontWeight: 'bold', marginLeft: 2 }}>Nro: {safe(item.Corre)}</Text>
+                    </View>
+                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                      <Button
+                        mode="text"
+                        onPress={() => toggleExpandido(uniqueId)}
+                        compact={true}
+                        style={{ minWidth: 110, height: 32, borderRadius: 16, paddingVertical: 0, paddingHorizontal: 12, justifyContent: 'center', alignItems: 'center', marginRight: 2, borderWidth: 0, backgroundColor: 'transparent' }}
+                        labelStyle={{ color: '#7B3FF2', fontSize: 12, lineHeight: 15, fontWeight: 'bold' }}
+                      >
+                        <Text style={{ color: '#7B3FF2', fontSize: 12, lineHeight: 15, fontWeight: 'bold' }}>{expandido[uniqueId] ? 'Ocultar' : 'Ver Detalle'}</Text>
+                      </Button>
+                      <Button
+                        mode="text"
+                        onPress={async () => {
+                          setLoadingDatosOc(true);
+                          setModalVisible(true);
+                          try {
+                            // Extraer parámetros correctos del item
+                            const idoc = item.IdOc || item.idoc || item.OC || item.idOC || '';
+                            const fila = item.Fila || item.fila || '';
+                            const IdSite = item.IdSite || item.Site || '';
+                            const Tipo_Trabajo = item.Tipo_Trabajo || item.TipoTrabajo || item.tipo_trabajo || '';
+                            const data = await getDatosOc({ idoc, fila, IdSite, Tipo_Trabajo });
+                            setDatosOc(data);
+                          } catch (e) {
+                            setDatosOc({ error: true, message: 'No se pudo obtener datos de OC' });
+                          }
+                          setLoadingDatosOc(false);
+                        }}
+                        compact={true}
+                        style={{ minWidth: 80, height: 32, borderRadius: 16, paddingVertical: 0, paddingHorizontal: 8, justifyContent: 'center', alignItems: 'center', borderWidth: 0, backgroundColor: 'transparent' }}
+                        labelStyle={{ color: '#2196F3', fontSize: 12, lineHeight: 15, fontWeight: 'bold' }}
+                      >
+                        <Text style={{ color: '#2196F3', fontSize: 12, lineHeight: 15, fontWeight: 'bold' }}>Datos OC</Text>
+                      </Button>
+                    </View>
                   </View>
-                  <View style={[styles.cell, { flexDirection: 'row', alignItems: 'center' }]}>
-                    <Text style={{marginRight: 12}}><Text style={styles.cellLabel}>Fec.Ing:</Text> {safe(item.FecIngreso)}</Text>
-                    <Text style={{marginRight: 12}}><Text style={styles.cellLabel}>Total:</Text> {safe(item.Total)} {safe(item.Moneda)}</Text>
-                    <Text><Text style={styles.cellLabel}>Responsable:</Text> {safe(item.Responsable)}</Text>
+                  <View style={[styles.cell, { flexDirection: 'row', alignItems: 'center' }]}> 
+                    <Text style={{marginRight: 12, fontSize: 13}}><Text style={styles.cellLabel}>Fecha:</Text> {safe(item.FecIngreso)}</Text>
+                    <Text style={{marginRight: 12, fontSize: 13}}><Text style={styles.cellLabel}>Total:</Text> {safe(item.Total)} {safe(item.Moneda)}</Text>
                   </View>
-                  <View style={styles.cell}><Text><Text style={styles.cellLabel}>Solicitante:</Text> {safe(item.Solicitante)}</Text></View>
+                  <View style={styles.cell}><Text style={{fontSize: 13}}><Text style={styles.cellLabel}>Solicitante:</Text> {safe(item.Solicitante)}</Text></View>
+                  <View style={styles.cell}><Text style={{fontSize: 13}}><Text style={styles.cellLabel}>Responsable:</Text> {safe(item.Responsable)}</Text></View>
                   {expandido[uniqueId] && (
                     <View style={styles.detalleCard}>
-                      <Text><Text style={styles.cellLabel}>Fec.Ing:</Text> {safe(item.FecIngreso)}</Text>
-                      <Text><Text style={styles.cellLabel}>Detalle:</Text> {safe(item.Detalle)}</Text>
-                      <Text><Text style={styles.cellLabel}>Bien/Servicio:</Text> {safe(item.Bien)}</Text>
-                      <Text><Text style={styles.cellLabel}>Comprobante:</Text> {safe(item.Comprobante)}</Text>
-                      <Text><Text style={styles.cellLabel}>Gestor:</Text> {safe(item.Gestor)}</Text>
-                      <Text><Text style={styles.cellLabel}>Proyecto:</Text> {safe(item.nombreProyecto)}</Text>
-                      <Text><Text style={styles.cellLabel}>Site:</Text> {safe(item.Site)}</Text>
-                      <Text><Text style={styles.cellLabel}>Subtotal:</Text> {safe(item.Subtotal)}</Text>
-                      <Text><Text style={styles.cellLabel}>IGV:</Text> {safe(item.IGV)}</Text>
-                      <Text><Text style={styles.cellLabel}>Estado:</Text> {safe(item.EstadoPla)}</Text>
-                      <Text><Text style={styles.cellLabel}>Observación:</Text> {safe(item.Observacion)}</Text>
+                      <Text style={{fontSize: 13}}><Text style={styles.cellLabel}>Fecha:</Text> {safe(item.FecIngreso)}</Text>
+                      <Text style={{fontSize: 13}}><Text style={styles.cellLabel}>Detalle:</Text> {safe(item.Detalle)}</Text>
+                      <Text style={{fontSize: 13}}><Text style={styles.cellLabel}>Bien/Servicio:</Text> {safe(item.Bien)}</Text>
+                      <Text style={{fontSize: 13}}><Text style={styles.cellLabel}>Comprobante:</Text> {safe(item.Comprobante)}</Text>
+                      <Text style={{fontSize: 13}}><Text style={styles.cellLabel}>Gestor:</Text> {safe(item.Gestor)}</Text>
+                      <Text style={{fontSize: 13}}><Text style={styles.cellLabel}>Proyecto:</Text> {safe(item.nombreProyecto)}</Text>
+                      <Text style={{fontSize: 13}}><Text style={styles.cellLabel}>Site:</Text> {safe(item.Site)}</Text>
+                      <Text style={{fontSize: 13}}><Text style={styles.cellLabel}>Subtotal:</Text> {safe(item.Subtotal)}</Text>
+                      <Text style={{fontSize: 13}}><Text style={styles.cellLabel}>IGV:</Text> {safe(item.IGV)}</Text>
+                      <Text style={{fontSize: 13}}><Text style={styles.cellLabel}>Estado:</Text> {safe(item.EstadoPla)}</Text>
+                      <Text style={{fontSize: 13}}><Text style={styles.cellLabel}>Observación:</Text> {safe(item.Observacion)}</Text>
                     </View>
                   )}
                 </Card>
               );
             }}
+            ListEmptyComponent={<Text style={{ textAlign: 'center', color: '#888', marginVertical: 16 }}>No hay registros para mostrar.</Text>}
           />
         </Card>
         {/* Botones de acción solo en la pestaña Seleccionados */}
@@ -271,9 +317,8 @@ export default function AprobarPagosScreen() {
                   setAccionActual('aprobar');
                   setConfirmModalVisible(true);
                 }}
-                title="Aprobar"
               >
-                <Text style={{ color: '#fff', textAlign: 'center' }}>Aprobar recibo</Text>
+                <Text style={{ color: '#fff', textAlign: 'center', fontSize: 13 }}>Aprobar recibo</Text>
               </Button>
               <Button
                 mode="contained"
@@ -285,12 +330,11 @@ export default function AprobarPagosScreen() {
                 onPress={() => {
                   setRechazoConfirmVisible(true);
                 }}
-                title="Rechazar"
               >
-                <Text style={{ color: '#fff', textAlign: 'center' }}>Rechazar</Text>
+                <Text style={{ color: '#fff', textAlign: 'center', fontSize: 13 }}>Rechazar</Text>
               </Button>
             </View>
-            <View style={styles.actionButtonsRow}>
+            <View style={[styles.actionButtonsRow, { marginTop: 4 }]}> {/* Menos espacio vertical entre filas de botones */}
               <Button
                 mode="contained"
                 disabled={seleccionados.length === 0}
@@ -301,24 +345,22 @@ export default function AprobarPagosScreen() {
                 onPress={() => {
                   setObservarConfirmVisible(true);
                 }}
-                title="Observar"
               >
-                <Text style={{ color: '#fff', textAlign: 'center' }}>Observar</Text>
+                <Text style={{ color: '#fff', textAlign: 'center', fontSize: 13 }}>Observar</Text>
               </Button>
               <Button
                 mode="contained"
                 disabled={seleccionados.length === 0}
                 style={[
                   styles.actionButtonFull,
-                  { backgroundColor: seleccionados.length === 0 ? '#BDBDBD' : '#2196F3' }
+                  { backgroundColor: seleccionados.length === 0 ? '#BDBDBDBD' : '#2196F3' }
                 ]}
                 onPress={() => {
                   setAccionActual('regularizar');
                   setConfirmModalVisible(true);
                 }}
-                title="Regularizar"
               >
-                <Text style={{ color: '#fff', textAlign: 'center' }}>Regularizar</Text>
+                <Text style={{ color: '#fff', textAlign: 'center', fontSize: 13 }}>Regularizar</Text>
               </Button>
             </View>
           </View>
@@ -328,24 +370,24 @@ export default function AprobarPagosScreen() {
           <Modal visible={rechazoConfirmVisible} onDismiss={() => setRechazoConfirmVisible(false)} contentContainerStyle={styles.modalContainer}>
             <Text style={styles.modalTitle}>¿Está seguro que desea rechazar los pagos seleccionados?</Text>
             <View style={{ flexDirection: 'row', justifyContent: 'flex-end', width: '100%' }}>
-              <Button mode="outlined" onPress={() => setRechazoConfirmVisible(false)}>Cancelar</Button>
+              <Button mode="outlined" onPress={() => setRechazoConfirmVisible(false)}><Text>Cancelar</Text></Button>
               <Button mode="contained" style={{ marginLeft: 8 }} onPress={() => {
                 setRechazoConfirmVisible(false);
                 setAccionActual('rechazar');
                 setConfirmModalVisible(true);
-              }}>Sí, rechazar</Button>
+              }}><Text style={{ color: '#fff' }}>Sí, rechazar</Text></Button>
             </View>
           </Modal>
           {/* Modal de confirmación para observar */}
           <Modal visible={observarConfirmVisible} onDismiss={() => setObservarConfirmVisible(false)} contentContainerStyle={styles.modalContainer}>
             <Text style={styles.modalTitle}>¿Está seguro que desea observar los pagos seleccionados?</Text>
             <View style={{ flexDirection: 'row', justifyContent: 'flex-end', width: '100%' }}>
-              <Button mode="outlined" onPress={() => setObservarConfirmVisible(false)}>Cancelar</Button>
+              <Button mode="outlined" onPress={() => setObservarConfirmVisible(false)}><Text>Cancelar</Text></Button>
               <Button mode="contained" style={{ marginLeft: 8 }} onPress={() => {
                 setObservarConfirmVisible(false);
                 setAccionActual('observar');
                 setConfirmModalVisible(true);
-              }}>Sí, observar</Button>
+              }}><Text style={{ color: '#fff' }}>Sí, observar</Text></Button>
             </View>
           </Modal>
           {/* Modal de confirmación para aprobar/rechazar/observar/regularizar */}
@@ -365,7 +407,7 @@ export default function AprobarPagosScreen() {
               />
             )}
             <View style={{ flexDirection: 'row', justifyContent: 'flex-end', width: '100%' }}>
-              <Button mode="outlined" onPress={() => { setConfirmModalVisible(false); setObservacionInput(''); }}>Cancelar</Button>
+              <Button mode="outlined" onPress={() => { setConfirmModalVisible(false); setObservacionInput(''); }}><Text>Cancelar</Text></Button>
               <Button
                 mode="contained"
                 style={{ marginLeft: 8 }}
@@ -439,7 +481,7 @@ export default function AprobarPagosScreen() {
                   setObservacionInput('');
                 }}
               >
-                {accionActual === 'aprobar' ? 'Aprobar' : accionActual === 'rechazar' ? 'Rechazar' : accionActual === 'regularizar' ? 'Regularizar' : 'Observar'}
+                <Text style={{ color: '#fff' }}>{accionActual === 'aprobar' ? 'Aprobar' : accionActual === 'rechazar' ? 'Rechazar' : accionActual === 'regularizar' ? 'Regularizar' : 'Observar'}</Text>
               </Button>
             </View>
           </Modal>
@@ -471,7 +513,7 @@ export default function AprobarPagosScreen() {
             {!loadingDatosOc && datosOc && datosOc.error && (
               <Text style={{color: 'red'}}>Error: {datosOc.message}</Text>
             )}
-            <Button mode="contained" onPress={() => setModalVisible(false)} style={{marginTop: 16}}>Cerrar</Button>
+            <Button mode="contained" onPress={() => setModalVisible(false)} style={{marginTop: 16}}><Text style={{ color: '#fff' }}>Cerrar</Text></Button>
           </Modal>
           {/* Snackbar */}
           <Snackbar
@@ -488,7 +530,7 @@ export default function AprobarPagosScreen() {
             {sqlDebugs.length > 0 ? sqlDebugs.map((sql, idx) => (
               <Text key={idx} style={{marginBottom: 8, fontSize: 12, color: '#333'}}>{sql}</Text>
             )) : <Text>No hay SQL para mostrar.</Text>}
-            <Button mode="contained" style={{marginTop: 12}} onPress={() => setSqlDebugModalVisible(false)}>Cerrar</Button>
+            <Button mode="contained" style={{marginTop: 12}} onPress={() => setSqlDebugModalVisible(false)}><Text style={{ color: '#fff' }}>Cerrar</Text></Button>
           </Modal>
         </Portal>
       </View>
@@ -497,16 +539,42 @@ export default function AprobarPagosScreen() {
 }
 
 const styles = StyleSheet.create({
-    tabsContainer: {
+    filtrosRow: {
       flexDirection: 'row',
-      justifyContent: 'center',
+      alignItems: 'center',
       marginBottom: 8,
       gap: 8,
+    },
+    tabsContainerRow: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      gap: 8,
+      marginBottom: 0,
+    },
+    tabsContainer: {
+      display: 'none', // Oculto, ya no se usa
     },
     tabButton: {
       marginHorizontal: 4,
       borderRadius: 8,
-      minWidth: 120,
+      minWidth: 100,
+      height: 36,
+      paddingVertical: 0,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    searchButton: {
+      minWidth: 36,
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      marginLeft: 4,
+      backgroundColor: '#7B3FF2',
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingVertical: 0,
+      paddingHorizontal: 0,
+      elevation: 2,
     },
   container: {
     flex: 1,
@@ -571,7 +639,8 @@ const styles = StyleSheet.create({
     marginHorizontal: 2,
     minWidth: 0,
     borderRadius: 8,
-    paddingVertical: 10,
+    paddingVertical: 9,
+    paddingHorizontal: 7,
     maxWidth: '100%',
   },
   modalContainer: {
