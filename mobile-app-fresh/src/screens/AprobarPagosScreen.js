@@ -138,68 +138,94 @@ export default function AprobarPagosScreen() {
 
   // ...existing code...
 
-   const toggleSeleccion = async (id) => {
+  // Utilidad para extraer solo el valor numérico de un string
+  const getNumber = (val) => {
+    if (typeof val === 'number') return val;
+    if (typeof val === 'string') {
+      const match = val.match(/[-+]?[0-9]*\.?[0-9]+/);
+      return match ? Number(match[0]) : 0;
+    }
+    return 0;
+  };
+
+  // Función utilitaria para obtener los parámetros para getDatosOc de un registro
+  // Devuelve los parámetros con los nombres exactos que espera el backend
+  const getDatosOcParams = (registro) => {
+    // Extraer idoc
+    const idoc = getNumber(registro?.idoc);
+    // Extraer fila (si es array, tomar el primer valor)
+    let fila = registro?.fila;
+    if (Array.isArray(fila)) fila = fila[0];
+    fila = getNumber(fila);
+    // Extraer IdSite y Tipo_Trabajo
+    const IdSite = registro?.IdSite ? registro.IdSite.toString() : '';
+    const Tipo_Trabajo = registro?.Tipo_Trabajo ? registro.Tipo_Trabajo.toString() : '';
+    return { idoc, fila, IdSite, Tipo_Trabajo };
+  };
+
+  const toggleSeleccion = async (id) => {
     console.log('toggleSeleccion INICIO:', { id });
-    setModalVisible(false);
-     const registro = resultados.find(item => String(item.Corre) === String(id));
-     if (!registro || registro.IdResponsable === undefined || registro.IdResponsable === null || registro.IdResponsable === '') {
-       setSnackbarMsg('No se puede seleccionar: falta IdResponsable');
-       setSnackbarVisible(true);
-       return;
-     }
-     // Utilidad para extraer solo el valor numérico de un string
-     const getNumber = (val) => {
-       if (typeof val === 'number') return val;
-       if (typeof val === 'string') {
-         const match = val.match(/[-+]?[0-9]*\.?[0-9]+/);
-         return match ? Number(match[0]) : 0;
-       }
-       return 0;
-     };
-     setSeleccionados(prev => {
-       const yaSeleccionado = prev.includes(id);
-       console.log('toggleSeleccion:', { id, yaSeleccionado, tab });
-       if (!yaSeleccionado && tab === 'todos') {
-         (async () => {
-           try {
-             const idoc = safe(registro.IdOc) || safe(registro.idoc) || safe(registro.OC) || safe(registro.idOC) || '';
-             const fila = safe(registro.Fila) || safe(registro.fila) || '';
-             const IdSite = safe(registro.IdSite) || safe(registro.Site) || '';
-             const Tipo_Trabajo = safe(registro.Tipo_Trabajo) || safe(registro.TipoTrabajo) || safe(registro.tipo_trabajo) || '';
-             const data = await getDatosOc({ idoc, fila, IdSite, Tipo_Trabajo });
-             let registroOriginal = registro;
-             if (!registroOriginal && registro.Corre && resultados && Array.isArray(resultados)) {
-               registroOriginal = resultados.find(r => String(r.Corre) === String(registro.Corre));
-             }
-             if (Array.isArray(data) && data.length > 0 && registroOriginal) {
-               const row = data[0];
-               const subPlanilla = getNumber(row.SubPlanilla);
-               const subtotal = getNumber(registroOriginal.Subtotal);
-               const montoPagoFicticio = subPlanilla + subtotal;
-               const montoOc = getNumber(row.SubOc);
-               // Debug log para ver los valores
-               console.log('--- VALIDACIÓN DE MONTOS AL SELECCIONAR REGISTRO ---');
-               console.log('Corre:', registro.Corre);
-               console.log('SubPlanilla:', subPlanilla);
-               console.log('Subtotal:', subtotal);
-               console.log('Monto Pago ficticio (SubPlanilla + Subtotal):', montoPagoFicticio);
-               console.log('Monto OC (SubOc):', montoOc);
-               console.log('---------------------------------------------------');
-               if (subPlanilla === 0 || montoOc === 0) return; // No mostrar modal si no hay datos válidos
-               if (montoPagoFicticio > montoOc) {
-                 setParamsOc(registro);
-                 setDatosOc(data);
-                 setModalVisible(true);
-               }
-             }
-           } catch (e) {
-             console.error('Error en toggleSeleccion al consultar datos OC o validar montos:', e);
-           }
-         })();
-       }
-       return yaSeleccionado ? prev.filter(sid => sid !== id) : [...prev, id];
-     });
-   };
+    const registro = resultados.find(item => String(item.Corre) === String(id));
+    // Determinar si ya está seleccionado
+    let yaSeleccionado = false;
+    setSeleccionados(prev => {
+      yaSeleccionado = prev.includes(id);
+      return yaSeleccionado ? prev.filter(sid => sid !== id) : [...prev, id];
+    });
+    // Solo mostrar modal si se está seleccionando (no desmarcando)
+    if (!yaSeleccionado && registro) {
+      let monto = 0;
+      let moneda = '';
+      if (registro.Subtotal !== undefined && !isNaN(Number(registro.Subtotal))) {
+        monto = Number(registro.Subtotal);
+      } else if (registro.Total !== undefined && !isNaN(Number(registro.Total))) {
+        monto = Number(registro.Total);
+      }
+      if (registro.Moneda) {
+        moneda = String(registro.Moneda).toUpperCase();
+      }
+      let mostrarModal = false;
+      if (moneda.includes('SOL') && monto >= 2000) {
+        mostrarModal = true;
+      } else if (moneda.includes('DOL') && monto >= 350) {
+        mostrarModal = true;
+      }
+      // Nueva validación: mostrar popup solo si Subtotal > SubOc
+      setLoadingDatosOc(true);
+      setParamsOc(registro);
+      try {
+        const params = getDatosOcParams(registro);
+        console.log('[Datos OC] Parámetros enviados a getDatosOc:', params);
+        const data = await getDatosOc(params);
+        let mostrarPopup = false;
+        if (Array.isArray(data) && data.length > 0) {
+          data.forEach(row => {
+            if (row.SubOc !== undefined && row.Moneda !== undefined) {
+              console.log(`[STORE] SubOc: ${row.SubOc}, Moneda: ${row.Moneda}, SubTotal (Resultados): ${registro.Subtotal}`);
+              if (Number(registro.Subtotal) > Number(row.SubOc)) {
+                mostrarPopup = true;
+              }
+            }
+          });
+        }
+        if (mostrarPopup) {
+          setModalVisible(true);
+        } else {
+          setModalVisible(false);
+        }
+        setDatosOc(data);
+      } catch (e) {
+        setDatosOc({ error: true, message: 'No se pudo obtener datos de OC' });
+      }
+      setLoadingDatosOc(false);
+    }
+    // Luego, continuar con la lógica normal de selección
+    if (!registro || registro.IdResponsable === undefined || registro.IdResponsable === null || registro.IdResponsable === '') {
+      setSnackbarMsg('No se puede seleccionar: falta IdResponsable');
+      setSnackbarVisible(true);
+      return;
+    }
+  };
 
    const toggleExpandido = (id) => {
      setExpandido(prev => ({ ...prev, [id]: !prev[id] }));
@@ -313,18 +339,22 @@ export default function AprobarPagosScreen() {
                       <Button
                         mode="text"
                         onPress={async () => {
+                          setDatosOc(null); // Limpiar datos previos
                           setLoadingDatosOc(true);
                           setModalVisible(true);
                           setParamsOc(item);
                           try {
-                            const idoc = safe(item.IdOc) || safe(item.idoc) || safe(item.OC) || safe(item.idOC) || '';
-                            const fila = safe(item.Fila) || safe(item.fila) || '';
-                            const IdSite = safe(item.IdSite) || safe(item.Site) || '';
-                            const Tipo_Trabajo = safe(item.Tipo_Trabajo) || safe(item.TipoTrabajo) || safe(item.tipo_trabajo) || '';
-                            const data = await getDatosOc({ idoc, fila, IdSite, Tipo_Trabajo });
-                            setDatosOc(data);
+                              // Mostrar el registro original antes de extraer parámetros
+                              console.log('--- [Datos OC] Registro original recibido:', item);
+                              // Extraer parámetros igual que en toggleSeleccion
+                              const params = getDatosOcParams(item);
+                              console.log('--- [Datos OC] Parámetros enviados a getDatosOc ---', params);
+                              const data = await getDatosOc(params);
+                              console.log('--- [Datos OC] Respuesta recibida:', data);
+                              setDatosOc(data);
                           } catch (e) {
-                            setDatosOc({ error: true, message: 'No se pudo obtener datos de OC' });
+                              console.error('[Datos OC] Error al consultar datos OC:', e);
+                              setDatosOc({ error: true, message: 'No se pudo obtener datos de OC' });
                           }
                           setLoadingDatosOc(false);
                         }}
