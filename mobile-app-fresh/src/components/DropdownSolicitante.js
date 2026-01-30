@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo } from 'react';
-import { View, StyleSheet, TextInput } from 'react-native';
+import { View, StyleSheet, TextInput, Text } from 'react-native';
 import { Menu, Button } from 'react-native-paper';
 
 export default function DropdownSolicitante({ data, value, onChange }) {
@@ -33,7 +33,7 @@ export default function DropdownSolicitante({ data, value, onChange }) {
         onDismiss={() => setVisible(false)}
         anchor={
           <Button mode="outlined" onPress={() => setVisible(true)} style={styles.dropdownButton}>
-            {selectedLabel || 'Seleccione un solicitante'}
+            <Text>{selectedLabel || 'Seleccione un solicitante'}</Text>
           </Button>
         }
         style={{ width: '100%' }}
