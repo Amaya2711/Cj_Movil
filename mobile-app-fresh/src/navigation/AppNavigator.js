@@ -5,6 +5,7 @@ import MainMenuScreen from '../screens/MainMenuScreen';
 import ReAprobarPagosScreen from '../screens/ReAprobarPagosScreen';
 import ReportePlanillaScreen from '../screens/ReportePlanillaScreen';
 import ReportePagosScreen from '../screens/ReportePagos';
+import DetallePagosScreen from '../screens/DetallePagos';
 
 const Stack = createStackNavigator();
 
@@ -16,6 +17,7 @@ export default function AppNavigator() {
       <Stack.Screen name="ReAprobarPagos" component={ReAprobarPagosScreen} />
       <Stack.Screen name="ReportePlanilla" component={ReportePlanillaScreen} options={{ title: 'Reporte Dinámico de Planillas' }} />
       <Stack.Screen name="ReportePagos" component={ReportePagosScreen} options={{ title: 'Reporte de Gastos' }} />
+      <Stack.Screen name="DetallePagos" component={DetallePagosScreen} options={{ title: 'Detalle de Pagos' }} />
     </Stack.Navigator>
   );
 }

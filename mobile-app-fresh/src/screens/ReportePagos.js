@@ -6,6 +6,7 @@ import { BarChart } from 'react-native-chart-kit';
 import MonedaMultiSelect from '../components/MonedaMultiSelect';
 import AnoMultiSelect from '../components/AnoMultiSelect';
 import { Platform } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 
 export default function ReportePagosScreen() {
   const [resultados, setResultados] = useState([]);
@@ -14,6 +15,7 @@ export default function ReportePagosScreen() {
   const [filtros, setFiltros] = useState({});
   const [monedasSeleccionadas, setMonedasSeleccionadas] = useState([]);
   const [anosSeleccionados, setAnosSeleccionados] = useState([]);
+  const navigation = useNavigation();
 
   const cargarDatos = async (monedasParam = monedasSeleccionadas, anosParam = anosSeleccionados) => {
     setLoading(true);
@@ -229,7 +231,24 @@ export default function ReportePagosScreen() {
                   ))}
                 </DataTable.Header>
                 {resultadosParaMostrar.map((row, idx) => (
-                  <DataTable.Row key={idx}>
+                  <DataTable.Row
+                    key={idx}
+                    onPress={() => {
+                      const tieneAno = 'Ano' in row && row.Ano !== undefined && row.Ano !== null;
+                      // Si hay años seleccionados, pásalos como arreglo; si no, solo el año del row
+                      let anosToSend = [];
+                      if (anosSeleccionados && anosSeleccionados.length > 0) {
+                        anosToSend = anosSeleccionados.filter(a => a !== undefined && a !== null && a !== '');
+                      } else if (tieneAno) {
+                        anosToSend = [row.Ano];
+                      }
+                      navigation.navigate('DetallePagos', {
+                        proyecto: row.Proyecto,
+                        anos: anosToSend,
+                      });
+                    }}
+                    style={{ cursor: 'pointer' }}
+                  >
                     {columnas
                       .filter(col => !(anosSeleccionados.length > 1 && col === 'Ano'))
                       .map((col) => (
