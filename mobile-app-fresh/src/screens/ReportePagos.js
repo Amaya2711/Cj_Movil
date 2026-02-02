@@ -1,26 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import { View, ScrollView, StyleSheet } from 'react-native';
 import { Text, Card, DataTable, ActivityIndicator, Button, TextInput } from 'react-native-paper';
-import { Picker } from '@react-native-picker/picker';
 import { getReporteGastos } from '../api/ReporteGastos';
 import { BarChart } from 'react-native-chart-kit';
+import MonedaMultiSelect from '../components/MonedaMultiSelect';
+import AnoMultiSelect from '../components/AnoMultiSelect';
+import { Platform } from 'react-native';
 
 export default function ReportePagosScreen() {
   const [resultados, setResultados] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [filtros, setFiltros] = useState({});
+  const [monedasSeleccionadas, setMonedasSeleccionadas] = useState([]);
+  const [anosSeleccionados, setAnosSeleccionados] = useState([]);
 
-  useEffect(() => {
-    cargarDatos();
-  }, []);
-
-  const cargarDatos = async () => {
+  const cargarDatos = async (monedasParam = monedasSeleccionadas, anosParam = anosSeleccionados) => {
     setLoading(true);
     setError('');
     try {
-      const res = await getReporteGastos();
-      console.log('Respuesta del backend (gastos):', res);
+      const res = await getReporteGastos(monedasParam, anosParam);
       if (res.error) throw new Error(res.message);
       setResultados(res.result || []);
     } catch (err) {
@@ -30,170 +29,248 @@ export default function ReportePagosScreen() {
     }
   };
 
-  // KPIs ejemplo
-  const kpi = resultados.reduce(
-    (acc, r) => {
-      acc.Total += Number(r.Total || 0);
-      acc.Gasto += Number(r.Gasto || 0);
-      return acc;
-    },
-    { Total: 0, Gasto: 0 }
-  );
+  useEffect(() => {
+    cargarDatos();
+  }, []);
 
-  // Filtros por columna
+  useEffect(() => {
+    cargarDatos(monedasSeleccionadas, anosSeleccionados);
+  }, [anosSeleccionados]);
+
   const columnas = resultados[0] ? Object.keys(resultados[0]) : [];
   const filtrar = (col, val) => {
     setFiltros({ ...filtros, [col]: val });
   };
-  // Relacionar moneda seleccionada con símbolo
-  const simboloPorMoneda = {
-    SOLES: 'S/.',
-    DOLARES: '$',
-    EUROS: '€',
-    'PESO DOMINICANO': 'RD$'
-  };
+
+  const monedas = Array.from(new Set(resultados.map(r => r.Moneda))).filter(Boolean);
+  // Obtener años únicos de los resultados
+  const anos = Array.from(new Set(resultados.map(r => r.Ano))).filter(Boolean).sort((a, b) => b - a);
+
+  // Seleccionar automáticamente el año más reciente si no hay ninguno seleccionado
+  useEffect(() => {
+    if (anosSeleccionados.length === 0 && anos.length > 0) {
+      setAnosSeleccionados([anos[0]]);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [anos.length]);
 
   const resultadosFiltrados = resultados.filter(row => {
     let cumpleMoneda = true;
-    if (monedaSeleccionada) {
-      // Normalizar ambos valores para evitar problemas de mayúsculas/minúsculas y símbolos
+    if (monedasSeleccionadas.length > 0) {
       const normalizar = v => (v || '').toString().trim().toUpperCase().replace(/[^A-Z ]/g, '');
-      cumpleMoneda = normalizar(row.Moneda) === normalizar(monedaSeleccionada);
+      cumpleMoneda = monedasSeleccionadas.some(m => normalizar(row.Moneda) === normalizar(m));
     }
-    return cumpleMoneda && Object.entries(filtros).every(([col, val]) =>
+    let cumpleAno = true;
+    if (anosSeleccionados.length > 0) {
+      cumpleAno = anosSeleccionados.map(Number).includes(Number(row.Ano));
+    }
+    return cumpleMoneda && cumpleAno && Object.entries(filtros).every(([col, val]) =>
       !val || String(row[col]).toLowerCase().includes(String(val).toLowerCase())
     );
   });
 
-  // Datos para gráfico: solo una moneda a la vez
-  const monedas = Array.from(new Set(resultados.map(r => r.Moneda))).filter(Boolean);
-  const [monedaSeleccionada, setMonedaSeleccionada] = useState(monedas[0] || '');
-  useEffect(() => {
-    if (monedas.length && !monedaSeleccionada) setMonedaSeleccionada(monedas[0]);
-  }, [monedas]);
+  // Agrupar resultados por Proyecto y Moneda si hay más de un año seleccionado
+  let resultadosParaMostrar = resultadosFiltrados;
+  if (anosSeleccionados.length > 1) {
+    const agrupados = {};
+    resultadosFiltrados.forEach(row => {
+      const key = `${row.Proyecto}__${row.Moneda}`;
+      if (!agrupados[key]) {
+        agrupados[key] = { ...row, Subtotal: 0 };
+      }
+      agrupados[key].Subtotal += Number(row.Subtotal || 0);
+    });
+    resultadosParaMostrar = Object.values(agrupados)
+      .map(r => {
+        // Eliminar campo Ano para que no se muestre en la tabla
+        const { Ano, ...rest } = r;
+        return rest;
+      })
+      .sort((a, b) => b.Subtotal - a.Subtotal);
+  }
 
-  // Eje X: proyectos, Eje Y: valores (monto total por proyecto)
-  // Eje X: solo proyectos, Eje Y: suma de valores por proyecto
-
-  // Calcular los proyectos con mayor gasto (mayor subtotal) para la moneda seleccionada
+  // Gráfico: solo toma la primera moneda seleccionada para el gráfico
+  const monedaGrafico = monedasSeleccionadas[0] || '';
   const proyectosConSubtotal = resultadosFiltrados
-    .filter(r => r.Moneda === monedaSeleccionada)
+    .filter(r => monedaGrafico ? r.Moneda && r.Moneda.toUpperCase() === monedaGrafico.toUpperCase() : true)
     .reduce((acc, r) => {
       if (!acc[r.Proyecto]) acc[r.Proyecto] = 0;
       acc[r.Proyecto] += Number(r.Subtotal || 0);
       return acc;
     }, {});
-
-  // Ordenar proyectos por subtotal descendente y tomar los 3 primeros
   const proyectosPorMoneda = Object.entries(proyectosConSubtotal)
     .sort((a, b) => b[1] - a[1])
     .slice(0, 3)
     .map(([proyecto]) => proyecto);
 
-  // Mostrar valores en miles
-  const valoresPorProyecto = proyectosPorMoneda.map(proyecto => (proyectosConSubtotal[proyecto] || 0) / 1000);
+  // Escala dinámica para el gráfico
+  const maxValor = Math.max(...Object.values(proyectosConSubtotal), 0);
+  let escala = 1000;
+  let sufijo = 'K';
+  if (maxValor >= 1000000) {
+    escala = 1000000;
+    sufijo = 'M';
+  }
+  const valoresPorProyecto = proyectosPorMoneda.map(proyecto => (proyectosConSubtotal[proyecto] || 0) / escala);
 
   const chartData = {
-    labels: proyectosPorMoneda, // Eje X: proyectos
+    labels: proyectosPorMoneda,
     datasets: [
       {
-        data: valoresPorProyecto, // Eje Y: valores
+        data: valoresPorProyecto,
       },
     ],
   };
 
+  // Exportar resultados filtrados a CSV (web y móvil)
+  const exportarResultados = async () => {
+    if (!resultadosFiltrados.length) return;
+    const columnasExport = Object.keys(resultadosFiltrados[0]);
+    const csvRows = [
+      columnasExport.join(','),
+      ...resultadosFiltrados.map(row =>
+        columnasExport.map(col => `"${String(row[col]).replace(/"/g, '""')}"`).join(',')
+      ),
+    ];
+    const csvString = csvRows.join('\n');
+
+    if (Platform.OS === 'web') {
+      // Descargar en web
+      const blob = new Blob([csvString], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'reporte_pagos.csv';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+    } else if (Platform.OS === 'ios' || Platform.OS === 'windows') {
+      // Expo Go (expo-sharing y expo-file-system)
+      try {
+        const FileSystem = await import('expo-file-system');
+        const Sharing = await import('expo-sharing');
+        const fileUri = FileSystem.cacheDirectory + 'reporte_pagos.csv';
+        await FileSystem.writeAsStringAsync(fileUri, csvString, { encoding: FileSystem.EncodingType.UTF8 });
+        await Sharing.shareAsync(fileUri, { mimeType: 'text/csv', dialogTitle: 'Exportar Resultados' });
+      } catch (e) {
+        alert('Exportación no disponible en este dispositivo. Verifica que expo-file-system y expo-sharing estén instalados y que usas Expo Go.');
+      }
+    } else {
+      alert('Exportación no disponible en este dispositivo.');
+    }
+  };
+
   return (
     <View style={styles.container}>
-      {/* <Text style={styles.titulo}>Reporte de Gastos</Text> */}
       <Card style={styles.cardGrafico}>
-        {/* <Text style={styles.graficoTitle}>Gráfico cruzado Proyecto-Cliente-Moneda</Text> */}
-        <Picker
-          selectedValue={monedaSeleccionada}
-          onValueChange={setMonedaSeleccionada}
-          style={{ marginVertical: 8 }}
-        >
-          {monedas.map(moneda => (
-            <Picker.Item key={moneda} label={moneda} value={moneda} />
-          ))}
-        </Picker>
-        <BarChart
-          data={chartData}
-          width={350}
-          height={220}
-          yAxisLabel="$"
-          yAxisSuffix="K"
-          chartConfig={{
-            backgroundColor: '#e3f2fd',
-            backgroundGradientFrom: '#e3f2fd',
-            backgroundGradientTo: '#e3f2fd',
-            decimalPlaces: 2,
-            color: (opacity = 1) => `rgba(123, 63, 242, ${opacity})`,
-            labelColor: (opacity = 1) => `rgba(44, 44, 44, ${opacity})`,
+        <AnoMultiSelect anos={anos} seleccionados={anosSeleccionados} onChange={setAnosSeleccionados} />
+        <MonedaMultiSelect
+          monedas={monedas}
+          seleccionadas={monedasSeleccionadas}
+          onChange={arr => {
+            setMonedasSeleccionadas(arr);
+            cargarDatos(arr, anosSeleccionados);
           }}
-          style={{ marginVertical: 8 }}
         />
-        {/* <Text style={{ fontSize: 12, marginTop: 4 }}>
-          Selecciona la moneda para ver los totales por Proyecto-Cliente.
-        </Text> */}
+        {monedasSeleccionadas.length > 1 ? (
+          <Text style={{ color: 'orange', marginTop: 16, textAlign: 'center' }}>
+            El gráfico está habilitado solo cuando se selecciona una moneda.
+          </Text>
+        ) : (
+          <BarChart
+            data={chartData}
+            width={300}
+            height={160}
+            yAxisLabel=""
+            yAxisSuffix={sufijo}
+            chartConfig={{
+              backgroundColor: '#e3f2fd',
+              backgroundGradientFrom: '#e3f2fd',
+              backgroundGradientTo: '#e3f2fd',
+              decimalPlaces: 2,
+              color: (opacity = 1) => `rgba(123, 63, 242, ${opacity})`,
+              labelColor: (opacity = 1) => `rgba(44, 44, 44, ${opacity})`,
+            }}
+            style={{ marginVertical: 8 }}
+          />
+        )}
       </Card>
       <ScrollView style={{ flex: 1 }}>
         <Card style={styles.cardResultados}>
-          <Text style={styles.resultadosTitle}>Resultados</Text>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Text style={styles.resultadosTitle}>Resultados</Text>
+            {(Platform.OS === 'web' || Platform.OS === 'ios' || Platform.OS === 'windows') ? (
+              <Button mode="outlined" onPress={exportarResultados} style={[styles.button, { marginLeft: 8, marginRight: 0 }]}>Exportar Resultados</Button>
+            ) : null}
+          </View>
           {loading ? (
             <ActivityIndicator animating size="large" style={{ marginVertical: 16 }} />
           ) : (
-            <DataTable>
-              <DataTable.Header>
-                {columnas.map((col) => (
-                  <DataTable.Title
-                    key={col}
-                    style={
-                      col === 'Proyecto'
-                        ? { minWidth: 180, maxWidth: 250, flex: 2 }
-                        : col === 'Suma'
-                        ? { minWidth: 120, maxWidth: 180, flex: 1, justifyContent: 'flex-end' }
-                        : col === 'Moneda'
-                        ? { minWidth: 24, maxWidth: 36, flex: 0.2, paddingHorizontal: 0 }
-                        : undefined
-                    }
-                    numeric={col === 'Moneda' || col === 'Suma' || (col !== 'Moneda' && typeof row !== 'undefined' && typeof row[col] === 'number')}
-                  >
-                    <Text style={col === 'Suma' ? { textAlign: 'center', width: '100%' } : undefined}>
-                      {col === 'Moneda' ? '' : col === 'Suma' ? 'Monto' : col}
-                    </Text>
-                  </DataTable.Title>
-                ))}
-              </DataTable.Header>
-              {resultadosFiltrados.map((row, idx) => (
-                <DataTable.Row key={idx}>
+            <ScrollView horizontal showsHorizontalScrollIndicator style={{ width: '100%' }}>
+              <DataTable>
+                <DataTable.Header>
                   {columnas.map((col) => (
-                    <DataTable.Cell
+                    <DataTable.Title
                       key={col}
-                      numeric={col === 'Moneda' || col === 'Suma' || (col !== 'Moneda' && typeof row[col] === 'number')}
-                      style={col === 'Suma' ? { justifyContent: 'flex-end' } : col === 'Moneda' ? { minWidth: 24, maxWidth: 36, paddingHorizontal: 0 } : undefined}
+                      numeric={col === 'Subtotal'}
+                      style={
+                        col === 'Proyecto'
+                          ? { minWidth: 160, maxWidth: 300, flex: 2 }
+                          : col === 'Subtotal'
+                          ? { justifyContent: 'flex-end' }
+                          : col === 'Moneda'
+                          ? { justifyContent: 'center', minWidth: 36, maxWidth: 48, paddingHorizontal: 0 }
+                          : undefined
+                      }
                     >
-                      {col === 'Subtotal' && !isNaN(Number(row[col]))
-                        ? Number(row[col]).toLocaleString('es-CO', { minimumFractionDigits: 0 })
-                        : col === 'Suma' && !isNaN(Number(row[col]))
-                        ? Number(row[col]).toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-                        : col === 'Moneda'
-                        ? (row[col] === 'SOLES' ? 'S/.'
-                            : row[col] === 'DOLARES' ? '$'
-                            : row[col] === 'EUROS' ? '€'
-                            : row[col] === 'PESO DOMINICANO' ? 'RD$'
-                            : String(row[col]))
-                        : String(row[col])}
-                    </DataTable.Cell>
+                      {col === 'Moneda' ? '' : col}
+                    </DataTable.Title>
                   ))}
-                </DataTable.Row>
-              ))}
-            </DataTable>
+                </DataTable.Header>
+                {resultadosParaMostrar.map((row, idx) => (
+                  <DataTable.Row key={idx}>
+                    {columnas
+                      .filter(col => !(anosSeleccionados.length > 1 && col === 'Ano'))
+                      .map((col) => (
+                        <DataTable.Cell
+                          key={col}
+                          numeric={col === 'Subtotal'}
+                          style={
+                            col === 'Proyecto'
+                              ? { minWidth: 160, maxWidth: 300, flex: 2 }
+                              : col === 'Subtotal'
+                              ? { justifyContent: 'flex-end' }
+                              : col === 'Moneda'
+                              ? { justifyContent: 'center', minWidth: 36, maxWidth: 48, paddingHorizontal: 0 }
+                              : undefined
+                          }
+                        >
+                          {col === 'Subtotal' && !isNaN(Number(row[col]))
+                            ? Number(row[col]).toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                            : col === 'Suma' && !isNaN(Number(row[col]))
+                            ? Number(row[col]).toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                            : col === 'Moneda'
+                            ? (row[col] === 'SOLES' ? '(S/.)'
+                                : row[col] === 'DOLARES' ? '$'
+                                : row[col] === 'EUROS' ? '€'
+                                : row[col] === 'PESO DOMINICANO' ? 'RD$'
+                                : String(row[col]))
+                            : String(row[col])}
+                        </DataTable.Cell>
+                      ))}
+                  </DataTable.Row>
+                ))}
+              </DataTable>
+            </ScrollView>
           )}
           {error ? <Text style={{ color: 'red', marginTop: 8 }}>{error}</Text> : null}
+          {!loading && resultados.length === 0 && (
+            <Text style={{ color: 'orange', marginTop: 8 }}>
+              No hay datos para el año seleccionado.
+            </Text>
+          )}
         </Card>
-        <Button mode="contained" onPress={cargarDatos} style={styles.button}>
-          Recargar
-        </Button>
       </ScrollView>
     </View>
   );

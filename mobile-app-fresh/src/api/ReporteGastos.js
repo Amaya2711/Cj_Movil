@@ -2,10 +2,12 @@ import { BASE_URL } from '../config';
 
 const API_PATH = '/api/reportes/gastos';
 
-export const getReporteGastos = async (monedas = null) => {
+export const getReporteGastos = async (monedas = null, anos = null) => {
   try {
     const url = `${BASE_URL}${API_PATH}`;
-    const body = monedas && monedas.length > 0 ? { Monedas: monedas.join(',') } : {};
+    const body = {};
+    if (monedas && monedas.length > 0) body.Monedas = monedas.join(',');
+    if (anos && anos.length > 0) body.Ano = anos.map(Number).join(',');
     const response = await fetch(url, {
       method: 'POST',
       headers: {
