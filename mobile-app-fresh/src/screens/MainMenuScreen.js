@@ -9,8 +9,8 @@ export default function MainMenuScreen({ navigation }) {
   const { nombreEmpleado } = useContext(UserContext);
   const OPTIONS = [
     { label: 'Aprobar', onPress: () => { console.log('Botón Aprobar presionado'); navigation.navigate('AprobarPagos'); } },
-    { label: 'Re-Aprobar', onPress: () => {} },
-    { label: 'Opción 3', onPress: () => {} },
+    { label: 'Re-Aprobar', onPress: () => { console.log('Botón Re-Aprobar presionado'); navigation.navigate('ReAprobarPagos'); } },
+    { label: 'Reporte', onPress: () => { console.log('Botón Reporte presionado'); navigation.navigate('ReportePagos'); } },
     { label: 'Opción 4', onPress: () => {} },
     { label: 'Opción 5', onPress: () => {} },
     { label: 'Opción 6', onPress: () => {} },
@@ -30,7 +30,7 @@ export default function MainMenuScreen({ navigation }) {
               mode="contained"
               onPress={opt.onPress}
               style={styles.menuButton}
-              disabled={idx > 1} // Solo los dos primeros botones activos
+              disabled={idx > 1}
             >
               {opt.label}
             </Button>

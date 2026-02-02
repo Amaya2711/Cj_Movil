@@ -28,7 +28,8 @@ export const login = async (req, res) => {
       message: `Bienvenido: ${user.NombreEmpleado || ''}`,
       nombre: user.NombreEmpleado || '',
       usuario: user.USUARIO || usuario,
-      Cuadrilla: user.Cuadrilla // <-- Agregado para exponer cuadrilla
+      Cuadrilla: user.Cuadrilla,
+      CodEmp: user.CodEmp !== undefined ? user.CodEmp : (user.codEmp !== undefined ? user.codEmp : null)
     });
   } catch (err) {
     console.error('Error en login:', err);
