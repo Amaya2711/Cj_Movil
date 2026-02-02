@@ -71,7 +71,7 @@ export default function LoginScreen({ navigation }) {
       if (err.response) {
         setError(`Error ${err.response.status}: ${err.response.data?.message || 'Error de servidor'}`);
       } else if (err.request) {
-        setError('No se pudo conectar con el servidor.');
+        setError('No se pudo conectar con el servidor');
       } else {
         setError(err.message);
       }

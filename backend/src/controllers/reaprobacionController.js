@@ -3,7 +3,7 @@ export const aprobarReaprobacion = async (req, res) => {
   try {
     const { ipLocal, CorFil, cIdSite, IdEst, IdResponsable, txtOb, cIdRegularizar, IdReAprobador } = req.body;
     if (!ipLocal || !CorFil || !cIdSite || IdEst === undefined || IdResponsable === undefined || txtOb === undefined || cIdRegularizar === undefined || IdReAprobador === undefined) {
-      return res.status(400).json({ message: 'Faltan parámetros requeridos' });
+      return res.status(400).json({ message: 'Faltan parámetros requeridos.' });
     }
     console.log('Ejecutando sp_Movil_ReAprobarPlanilla con:', {
       ipLocal: String(ipLocal),

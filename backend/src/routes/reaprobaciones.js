@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { consultarReaprobaciones, aprobarReaprobacion } from '../controllers/ReAprobarController.js';
+import { consultarReaprobaciones, aprobarReaprobacion } from '../controllers/reaprobarcontroller.js';
 
 const router = Router();
 
