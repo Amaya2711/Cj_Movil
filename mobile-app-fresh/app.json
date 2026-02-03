@@ -11,7 +11,7 @@
     "platforms": ["android", "ios", "web"],
     "web": {
       "favicon": "./assets/logoCj.png",
-      "output": "static",
+      "output": "single",
       "bundler": "metro"
     }
   }
