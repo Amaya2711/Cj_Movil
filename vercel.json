@@ -4,5 +4,10 @@
   "cleanUrls": true,
   "rewrites": [
     { "source": "/:path*", "destination": "/" }
-  ]
-}
+  {
+    "build": {
+      "env": {
+        "NPM_FLAGS": "--legacy-peer-deps"
+      }
+    }
+  }
