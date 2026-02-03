@@ -22,7 +22,7 @@ export default function MainMenuScreen({ navigation }) {
   };
   return (
     <View style={styles.container}>
-      <Text style={styles.bienvenida}>Bienvenido, {nombreEmpleado}</Text>
+      <Text style={styles.bienvenida}>Bienvenido, {String(nombreEmpleado)}</Text>
       <View style={styles.grid}>
         {OPTIONS.slice(0, SEGMENTS).map((opt, idx) => (
           <View key={idx} style={styles.segment}>

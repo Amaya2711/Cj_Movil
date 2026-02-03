@@ -8,6 +8,11 @@
      "assetBundlePatterns": [
       "**/*"
     ],
-    "platforms": ["android", "ios"]
+    "platforms": ["android", "ios", "web"],
+    "web": {
+      "favicon": "./assets/logoCj.png",
+      "output": "static",
+      "bundler": "metro"
+    }
   }
 }

@@ -35,12 +35,19 @@ export default function DetallePagosScreen({ route }) {
     fetchData();
   }, [proyecto, JSON.stringify(anos), page, pageSize]);
 
-  const asText = (v) =>
-    v === null || v === undefined
-      ? ''
-      : typeof v === 'string' || typeof v === 'number'
-      ? String(v)
-      : JSON.stringify(v);
+  const asText = (v) => {
+    if (v === null || v === undefined) return '';
+    if (typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean') return String(v);
+    if (Array.isArray(v)) return v.map(asText).join(', ');
+    if (typeof v === 'object') {
+      try {
+        return JSON.stringify(v);
+      } catch {
+        return '[objeto]';
+      }
+    }
+    return String(v);
+  };
 
   const columnas = data[0] ? Object.keys(data[0]) : [];
 
@@ -127,10 +134,22 @@ export default function DetallePagosScreen({ route }) {
                     {expandido[uniqueId] && (
                       <View style={{ marginTop: 8, backgroundColor: '#f3f3f3', borderRadius: 8, padding: 8 }}>
                         {/* Campos adicionales, puedes personalizar los que quieras mostrar */}
-                        <Text style={{ fontWeight: 'bold', color: '#7B3FF2' }}>Comprobante: <Text style={{ color: '#333' }}>{asText(item.Comprobante)}</Text></Text>
-                        <Text style={{ fontWeight: 'bold', color: '#7B3FF2' }}>RUC: <Text style={{ color: '#333' }}>{asText(item.RUC)}</Text></Text>
-                        <Text style={{ fontWeight: 'bold', color: '#7B3FF2' }}>TipoPago: <Text style={{ color: '#333' }}>{asText(item.TipoPago)}</Text></Text>
-                        <Text style={{ fontWeight: 'bold', color: '#7B3FF2' }}>Observación: <Text style={{ color: '#333' }}>{asText(item.Observacion)}</Text></Text>
+                        <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center' }}>
+                          <Text style={{ fontWeight: 'bold', color: '#7B3FF2' }}>Comprobante: </Text>
+                          <Text style={{ color: '#333' }}>{asText(item.Comprobante)}</Text>
+                        </View>
+                        <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center' }}>
+                          <Text style={{ fontWeight: 'bold', color: '#7B3FF2' }}>RUC: </Text>
+                          <Text style={{ color: '#333' }}>{asText(item.RUC)}</Text>
+                        </View>
+                        <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center' }}>
+                          <Text style={{ fontWeight: 'bold', color: '#7B3FF2' }}>TipoPago: </Text>
+                          <Text style={{ color: '#333' }}>{asText(item.TipoPago)}</Text>
+                        </View>
+                        <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center' }}>
+                          <Text style={{ fontWeight: 'bold', color: '#7B3FF2' }}>Observación: </Text>
+                          <Text style={{ color: '#333' }}>{asText(item.Observacion)}</Text>
+                        </View>
                         {/* Agrega más campos según lo que desees mostrar */}
                       </View>
                     )}
