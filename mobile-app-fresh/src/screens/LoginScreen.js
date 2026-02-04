@@ -62,7 +62,8 @@ export default function LoginScreen({ navigation }) {
           nombreEmpleado: res.data.nombre,
           ipLocal,
           networkType,
-          codEmp: res.data.CodEmp
+          codEmp: res.data.CodEmp,
+          CodVal: res.data.CodVal
         });
 
         navigation.replace('MainMenu');

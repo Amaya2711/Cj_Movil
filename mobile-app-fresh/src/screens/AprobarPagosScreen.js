@@ -19,7 +19,8 @@ export default function AprobarPagosScreen() {
   const [observarConfirmVisible, setObservarConfirmVisible] = useState(false);
   const [sqlDebugModalVisible, setSqlDebugModalVisible] = useState(false);
   const [sqlDebugs, setSqlDebugs] = useState([]);
-  const { ipLocal } = useContext(UserContext);
+  const { ipLocal, CodVal } = useContext(UserContext);
+  const [showCodVal, setShowCodVal] = useState(false);
   console.log('AprobarPagosScreen montado');
   const [filtroSolicitante, setFiltroSolicitante] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -27,6 +28,9 @@ export default function AprobarPagosScreen() {
   const [resultadosOriginales, setResultadosOriginales] = useState([]); // datos originales
   const [seleccionados, setSeleccionados] = useState([]); // array de ids seleccionados
   const [expandido, setExpandido] = useState({}); // control de expansión por registro
+  // Paginación para Resultados
+  const [page, setPage] = useState(1);
+  const pageSize = 5;
   const [tab, setTab] = useState('todos'); // 'todos' | 'seleccionados'
   const [modalVisible, setModalVisible] = useState(false);
   const [datosOc, setDatosOc] = useState(null);
@@ -107,6 +111,11 @@ export default function AprobarPagosScreen() {
     cargarSolicitantes('');
   }, []);
 
+  // Recargar consulta general cada vez que cambia el check 'Todos'
+  useEffect(() => {
+    cargarAprobaciones();
+  }, [showCodVal]);
+
   const cargarSolicitantes = async (nombre = '') => {
     try {
       const data = await getSolicitantes(nombre);
@@ -118,7 +127,13 @@ export default function AprobarPagosScreen() {
 
   const cargarAprobaciones = async () => {
     try {
-      const data = await getAprobaciones();
+      // Si showCodVal es falso y CodVal tiene valor, enviar como IdValidador
+      let data;
+      if (!showCodVal && CodVal) {
+        data = await getAprobaciones('', CodVal); // Nuevo segundo parámetro
+      } else {
+        data = await getAprobaciones();
+      }
       setResultados(data);
       setResultadosOriginales(data);
     } catch (error) {
@@ -331,31 +346,90 @@ export default function AprobarPagosScreen() {
           </View>
         </Card>
         <View style={{ flex: 1 }}>
-          <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'}}>
-            <Text style={styles.seccionTitulo}>Resultados</Text>
-            <Text style={styles.cantidadRegistros}>
-              {`Registros: ${tab === 'todos'
-                ? (Array.isArray(resultados) ? resultados.length : 0)
-                : (Array.isArray(seleccionados) ? seleccionados.length : 0)}`}
-            </Text>
+          <View style={{flexDirection: 'column', justifyContent: 'flex-start'}}>
+            {/* Botones de paginación solo si hay más de 1 página y en la pestaña Pendientes */}
+            {tab === 'todos' && Math.max(1, Math.ceil((Array.isArray(resultados) ? resultados.length : 0) / pageSize)) > 1 && (
+              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
+                <Button
+                  mode="outlined"
+                  onPress={() => setPage(1)}
+                  disabled={page === 1}
+                  style={{ marginHorizontal: 1, minWidth: 28, height: 28, paddingHorizontal: 0, paddingVertical: 0 }}
+                  labelStyle={{ fontSize: 13, paddingHorizontal: 0, lineHeight: 16 }}
+                  icon="chevron-double-left"
+                />
+                <Button
+                  mode="outlined"
+                  onPress={() => setPage(p => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                  style={{ marginHorizontal: 1, minWidth: 28, height: 28, paddingHorizontal: 0, paddingVertical: 0 }}
+                  labelStyle={{ fontSize: 13, paddingHorizontal: 0, lineHeight: 16 }}
+                  icon="chevron-left"
+                />
+                <Text style={{ marginHorizontal: 4 }}>
+                  Página {page} de {Math.max(1, Math.ceil((Array.isArray(resultados) ? resultados.length : 0) / pageSize))}
+                </Text>
+                <Button
+                  mode="outlined"
+                  onPress={() => setPage(p => (p < Math.max(1, Math.ceil((Array.isArray(resultados) ? resultados.length : 0) / pageSize))) ? p + 1 : p)}
+                  disabled={page >= Math.max(1, Math.ceil((Array.isArray(resultados) ? resultados.length : 0) / pageSize))}
+                  style={{ marginHorizontal: 1, minWidth: 28, height: 28, paddingHorizontal: 0, paddingVertical: 0 }}
+                  labelStyle={{ fontSize: 13, paddingHorizontal: 0, lineHeight: 16 }}
+                  icon="chevron-right"
+                />
+                <Button
+                  mode="outlined"
+                  onPress={() => setPage(Math.max(1, Math.ceil((Array.isArray(resultados) ? resultados.length : 0) / pageSize)))}
+                  disabled={page >= Math.max(1, Math.ceil((Array.isArray(resultados) ? resultados.length : 0) / pageSize))}
+                  style={{ marginHorizontal: 1, minWidth: 28, height: 28, paddingHorizontal: 0, paddingVertical: 0 }}
+                  labelStyle={{ fontSize: 13, paddingHorizontal: 0, lineHeight: 16 }}
+                  icon="chevron-double-right"
+                />
+              </View>
+            )}
+            <View style={{flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%'}}>
+              <View style={{flexDirection: 'row', alignItems: 'center'}}>
+                <Text style={styles.seccionTitulo}>Resultados</Text>
+                <Checkbox
+                  status={showCodVal ? 'checked' : 'unchecked'}
+                  onPress={() => setShowCodVal(v => !v)}
+                  style={{ marginLeft: 8 }}
+                />
+                <Text style={{ marginLeft: 2, fontSize: 13 }}>Todos</Text>
+                {/* CodVal oculto en todos los casos */}
+              </View>
+              <Text style={[styles.cantidadRegistros, { textAlign: 'right', flex: 1 }] }>
+                {`Registros: ${tab === 'todos'
+                  ? (Array.isArray(resultados) ? resultados.length : 0)
+                  : (Array.isArray(seleccionados) ? seleccionados.length : 0)}`}
+              </Text>
+            </View>
           </View>
           {(() => {
-            const dataMostrada =
+            const dataCompleta =
               tab === 'todos'
                 ? Array.isArray(resultados) ? resultados : []
                 : Array.isArray(resultados)
                   ? resultados.filter(item => Array.isArray(seleccionados) && seleccionados.includes(String(item.Corre)))
                   : [];
+            // Paginación solo para la pestaña Pendientes
+            const totalPages = Math.max(1, Math.ceil(dataCompleta.length / pageSize));
+            const pagedData = tab === 'todos'
+              ? dataCompleta.slice((page - 1) * pageSize, page * pageSize)
+              : dataCompleta;
+            // Resetear página si cambia la pestaña o los datos
+            React.useEffect(() => { setPage(1); }, [tab, resultados]);
             return (
-              <FlatList
-                data={dataMostrada}
-                keyExtractor={(item) => `${safe(item.Corre)}_${safe(item.IdSite)}`}
-                contentContainerStyle={{ paddingBottom: 24 }}
-                renderItem={({ item }) => {
-                  console.log('[FlatList][AprobarPagosScreen] item:', item);
-                  const uniqueId = String(item.Corre);
-                  return (
-                    <Card style={{ marginBottom: 12, padding: 8 }}>
+              <>
+                <FlatList
+                  data={pagedData}
+                  keyExtractor={(item) => `${safe(item.Corre)}_${safe(item.IdSite)}`}
+                  contentContainerStyle={{ paddingBottom: 24 }}
+                  renderItem={({ item }) => {
+                    console.log('[FlatList][AprobarPagosScreen] item:', item);
+                    const uniqueId = String(item.Corre);
+                    return (
+                      <Card style={{ marginBottom: 4, padding: 8 }}>
                       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
                         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                           <Checkbox
@@ -487,7 +561,8 @@ export default function AprobarPagosScreen() {
                     </Card>
                   );
                 }}
-              />
+                />
+              </>
             );
           })()}
         </View>

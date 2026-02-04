@@ -29,7 +29,8 @@ export const login = async (req, res) => {
       nombre: user.NombreEmpleado || '',
       usuario: user.USUARIO || usuario,
       Cuadrilla: user.Cuadrilla,
-      CodEmp: user.CodEmp !== undefined ? user.CodEmp : (user.codEmp !== undefined ? user.codEmp : null)
+      CodEmp: user.CodEmp !== undefined ? user.CodEmp : (user.codEmp !== undefined ? user.codEmp : null),
+      CodVal: user.CodVal !== undefined ? user.CodVal : null
     });
   } catch (err) {
     console.error('Error en login:', err);

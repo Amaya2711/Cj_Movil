@@ -8,6 +8,7 @@ export const UserContext = createContext({
   ipLocal: null,
   networkType: null,
   codEmp: null,
+  CodVal: null,
   setUserData: () => {},
 });
 
@@ -20,6 +21,7 @@ export const UserProvider = ({ children }) => {
     ipLocal: null,
     networkType: null,
     codEmp: null,
+    CodVal: null,
   });
 
   return (
