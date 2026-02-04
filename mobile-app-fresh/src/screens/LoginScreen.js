@@ -103,6 +103,7 @@ export default function LoginScreen({ navigation }) {
           <TextInput
             label="Contraseña"
             value={password}
+            onChangeText={setPassword}
             secureTextEntry={!showPassword}
             style={styles.input}
             right={
