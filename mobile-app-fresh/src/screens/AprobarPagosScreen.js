@@ -305,7 +305,7 @@ export default function AprobarPagosScreen() {
               icon="magnify"
               contentStyle={{ flexDirection: 'row-reverse', height: 36 }}
               accessibilityLabel="Buscar"
-            >Buscar</Button>
+            />
           </View>
           <View style={styles.tabsContainerRow}>
             <Button
@@ -330,7 +330,7 @@ export default function AprobarPagosScreen() {
             >Seleccionados</Button>
           </View>
         </Card>
-        <Card style={styles.resultadosCard}>
+        <View style={{ flex: 1 }}>
           <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'}}>
             <Text style={styles.seccionTitulo}>Resultados</Text>
             <Text style={styles.cantidadRegistros}>
@@ -350,7 +350,9 @@ export default function AprobarPagosScreen() {
               <FlatList
                 data={dataMostrada}
                 keyExtractor={(item) => `${safe(item.Corre)}_${safe(item.IdSite)}`}
+                contentContainerStyle={{ paddingBottom: 24 }}
                 renderItem={({ item }) => {
+                  console.log('[FlatList][AprobarPagosScreen] item:', item);
                   const uniqueId = String(item.Corre);
                   return (
                     <Card style={{ marginBottom: 12, padding: 8 }}>
@@ -488,7 +490,7 @@ export default function AprobarPagosScreen() {
               />
             );
           })()}
-        </Card>
+        </View>
         {/* Botones de acción solo en la pestaña Seleccionados */}
         {tab === 'seleccionados' ? (
           <View style={{ width: '100%' }}>

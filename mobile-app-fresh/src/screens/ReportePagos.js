@@ -1,3 +1,8 @@
+  // Utilidad para truncar etiquetas del eje X
+  const truncateLabel = (label) => {
+    if (typeof label !== 'string') return '';
+    return label.length > 10 ? label.slice(0, 10) + '…' : label;
+  };
 import React, { useState, useEffect } from 'react';
 import { View, ScrollView, StyleSheet } from 'react-native';
 import { Text, Card, DataTable, ActivityIndicator, Button, TextInput } from 'react-native-paper';
@@ -14,7 +19,9 @@ export default function ReportePagosScreen() {
   const [error, setError] = useState('');
   const [filtros, setFiltros] = useState({});
   const [monedasSeleccionadas, setMonedasSeleccionadas] = useState([]);
-  const [anosSeleccionados, setAnosSeleccionados] = useState([]);
+  // Inicializar con el año en curso
+  const currentYear = new Date().getFullYear();
+  const [anosSeleccionados, setAnosSeleccionados] = useState([currentYear]);
   const navigation = useNavigation();
 
   const cargarDatos = async (monedasParam = monedasSeleccionadas, anosParam = anosSeleccionados) => {
@@ -32,7 +39,7 @@ export default function ReportePagosScreen() {
   };
 
   useEffect(() => {
-    cargarDatos();
+    cargarDatos(monedasSeleccionadas, anosSeleccionados);
   }, []);
 
   useEffect(() => {
@@ -48,13 +55,7 @@ export default function ReportePagosScreen() {
   // Obtener años únicos de los resultados
   const anos = Array.from(new Set(resultados.map(r => r.Ano))).filter(Boolean).sort((a, b) => b - a);
 
-  // Seleccionar automáticamente el año más reciente si no hay ninguno seleccionado
-  useEffect(() => {
-    if (anosSeleccionados.length === 0 && anos.length > 0) {
-      setAnosSeleccionados([anos[0]]);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [anos.length]);
+  // Ya no es necesario seleccionar automáticamente el año más reciente, porque se inicializa con el año en curso
 
   const resultadosFiltrados = resultados.filter(row => {
     let cumpleMoneda = true;
@@ -116,7 +117,7 @@ export default function ReportePagosScreen() {
   const valoresPorProyecto = proyectosPorMoneda.map(proyecto => (proyectosConSubtotal[proyecto] || 0) / escala);
 
   const chartData = {
-    labels: proyectosPorMoneda,
+    labels: proyectosPorMoneda.map(truncateLabel),
     datasets: [
       {
         data: valoresPorProyecto,

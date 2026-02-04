@@ -60,6 +60,14 @@ export default function DetallePagosScreen({ route }) {
       <Card style={styles.cardResultados}>
         {/* Botones Anterior y Siguiente en la cabecera */}
         <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginBottom: 12 }}>
+          {Math.ceil(total / pageSize) > 2 && (
+            <Button
+              mode="outlined"
+              onPress={() => setPage(1)}
+              disabled={page === 1}
+              style={{ marginHorizontal: 8 }}
+            >Primera</Button>
+          )}
           <Button
             mode="outlined"
             onPress={() => setPage(p => Math.max(1, p - 1))}
@@ -75,6 +83,14 @@ export default function DetallePagosScreen({ route }) {
             disabled={page >= Math.ceil(total / pageSize)}
             style={{ marginHorizontal: 8 }}
           >Siguiente</Button>
+          {Math.ceil(total / pageSize) > 2 && (
+            <Button
+              mode="outlined"
+              onPress={() => setPage(Math.ceil(total / pageSize))}
+              disabled={page >= Math.ceil(total / pageSize)}
+              style={{ marginHorizontal: 8 }}
+            >Última</Button>
+          )}
         </View>
         {loading ? (
           <ActivityIndicator animating size="large" style={{ marginVertical: 16 }} />

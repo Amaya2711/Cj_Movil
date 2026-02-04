@@ -22,10 +22,17 @@ router.post('/', async (req, res) => {
         .split(',')
         .map(a => Number(a))
         .filter(a => !isNaN(a));
+      function parseDDMMYYYY(fechaStr) {
+        if (!fechaStr || typeof fechaStr !== 'string') return null;
+        const [day, month, year] = fechaStr.split('/');
+        if (!day || !month || !year) return null;
+        return new Date(`${year}-${month}-${day}`);
+      }
       if (anosArr.length > 0) {
         allRows = allRows.filter(row => {
           if (!row.FechaDeposito) return false;
-          const fecha = new Date(row.FechaDeposito);
+          const fecha = parseDDMMYYYY(row.FechaDeposito);
+          if (!fecha || isNaN(fecha.getTime())) return false;
           const anio = fecha.getFullYear();
           return anosArr.includes(anio);
         });
