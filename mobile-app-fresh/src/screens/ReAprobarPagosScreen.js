@@ -324,165 +324,150 @@ export default function ReAprobarPagosScreen({ navigation }) {
             </View>
           </View>
         </Card>
-        <Card style={styles.resultadosCard}>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Text style={styles.seccionTitulo}>Resultados</Text>
-            <Text style={styles.cantidadRegistros}>
-              {`Registros: ${tab === 'todos'
-                ? (Array.isArray(resultados) ? resultados.length : 0)
-                : (Array.isArray(seleccionados) ? seleccionados.length : 0)}`}
-            </Text>
-          </View>
-          {(() => {
-            const dataMostrada =
-              tab === 'todos'
-                ? Array.isArray(resultados) ? resultados : []
-                : Array.isArray(resultados)
-                  ? resultados.filter(item => Array.isArray(seleccionados) && seleccionados.includes(String(item.Corre)))
-                  : [];
-            return (
-              <FlatList
-                data={dataMostrada}
-                keyExtractor={(item) => `${safe(item.Corre)}_${safe(item.IdSite)}`}
-                renderItem={({ item }) => {
-                  const uniqueId = String(item.Corre);
-                  return (
-                    <Card style={{ marginBottom: 12, padding: 8 }}>
-                      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
-                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                          <Checkbox
-                            status={Array.isArray(seleccionados) && seleccionados.includes(uniqueId) ? 'checked' : 'unchecked'}
-                            onPress={() => toggleSeleccion(uniqueId)}
-                          />
-                          <Text style={{ fontSize: 12, color: '#888', fontWeight: 'bold', marginLeft: 2 }}>Nro: {asText(item.Corre)}</Text>
-                        </View>
-                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                          <Button
-                            mode="text"
-                            onPress={() => toggleExpandido(uniqueId)}
-                            compact={true}
-                            style={{ minWidth: 110, height: 32, borderRadius: 16, paddingVertical: 0, paddingHorizontal: 12, justifyContent: 'center', alignItems: 'center', marginRight: 2, borderWidth: 0, backgroundColor: 'transparent' }}
-                            labelStyle={{ color: '#7B3FF2', fontSize: 12, lineHeight: 15, fontWeight: 'bold' }}
-                          >
-                            {expandido[uniqueId] ? 'Ocultar' : 'Ver Detalle'}
-                          </Button>
-                          <Button
-                            mode="text"
-                            onPress={async () => {
-                              setDatosOc(null);
-                              setLoadingDatosOc(true);
-                              setModalVisible(true);
-                              setParamsOc(item);
-                              try {
-                                console.log('--- [Datos OC] Registro original recibido:', item);
-                                const params = getDatosOcParams(item);
-                                console.log('--- [Datos OC] Parámetros enviados a getDatosOc ---', params);
-                                const data = await getDatosOc(params);
-                                console.log('--- [Datos OC] Respuesta recibida:', data);
-                                setDatosOc(data);
-                              } catch (e) {
-                                console.error('[Datos OC] Error al consultar datos OC:', e);
-                                setDatosOc({ error: true, message: 'No se pudo obtener datos de OC' });
-                              }
-                              setLoadingDatosOc(false);
-                            }}
-                            compact={true}
-                            style={{ minWidth: 80, height: 32, borderRadius: 16, paddingVertical: 0, paddingHorizontal: 8, justifyContent: 'center', alignItems: 'center', borderWidth: 0, backgroundColor: 'transparent' }}
-                            labelStyle={{ color: '#2196F3', fontSize: 12, lineHeight: 15, fontWeight: 'bold' }}
-                          >
-                            Datos OC
-                          </Button>
-                        </View>
+        {/* Cambios aquí: FlatList fuera del Card, en un View con flex:1 */}
+        <View style={{ flex: 1 }}>
+          <FlatList
+            data={tab === 'todos'
+              ? (Array.isArray(resultados) ? resultados : [])
+              : (Array.isArray(resultados)
+                ? resultados.filter(item => Array.isArray(seleccionados) && seleccionados.includes(String(item.Corre)))
+                : [])}
+            keyExtractor={(item) => `${safe(item.Corre)}_${safe(item.IdSite)}`}
+            contentContainerStyle={{ paddingBottom: 24 }}
+            keyboardShouldPersistTaps="handled"
+            renderItem={({ item }) => {
+              const uniqueId = String(item.Corre);
+              return (
+                <Card style={{ marginBottom: 12, padding: 8 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                      <Checkbox
+                        status={Array.isArray(seleccionados) && seleccionados.includes(uniqueId) ? 'checked' : 'unchecked'}
+                        onPress={() => toggleSeleccion(uniqueId)}
+                      />
+                      <Text style={{ fontSize: 12, color: '#888', fontWeight: 'bold', marginLeft: 2 }}>Nro: {asText(item.Corre)}</Text>
+                    </View>
+                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                      <Button
+                        mode="text"
+                        onPress={() => toggleExpandido(uniqueId)}
+                        compact={true}
+                        style={{ minWidth: 110, height: 32, borderRadius: 16, paddingVertical: 0, paddingHorizontal: 12, justifyContent: 'center', alignItems: 'center', marginRight: 2, borderWidth: 0, backgroundColor: 'transparent' }}
+                        labelStyle={{ color: '#7B3FF2', fontSize: 12, lineHeight: 15, fontWeight: 'bold' }}
+                      >
+                        {expandido[uniqueId] ? 'Ocultar' : 'Ver Detalle'}
+                      </Button>
+                      <Button
+                        mode="text"
+                        onPress={async () => {
+                          setDatosOc(null);
+                          setLoadingDatosOc(true);
+                          setModalVisible(true);
+                          setParamsOc(item);
+                          try {
+                            const params = getDatosOcParams(item);
+                            const data = await getDatosOc(params);
+                            setDatosOc(data);
+                          } catch (e) {
+                            setDatosOc({ error: true, message: 'No se pudo obtener datos de OC' });
+                          }
+                          setLoadingDatosOc(false);
+                        }}
+                        compact={true}
+                        style={{ minWidth: 80, height: 32, borderRadius: 16, paddingVertical: 0, paddingHorizontal: 8, justifyContent: 'center', alignItems: 'center', borderWidth: 0, backgroundColor: 'transparent' }}
+                        labelStyle={{ color: '#2196F3', fontSize: 12, lineHeight: 15, fontWeight: 'bold' }}
+                      >
+                        Datos OC
+                      </Button>
+                    </View>
+                  </View>
+                  <View style={[styles.cell, { flexDirection: 'row', alignItems: 'center' }]}> 
+                    <View style={{ flexDirection: 'row', alignItems: 'center', marginRight: 12 }}>
+                      <Text style={styles.cellLabel}>Fecha:</Text>
+                      <Text style={{ fontSize: 13 }}>{asText(item.FecIngreso)}</Text>
+                    </View>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', marginRight: 12 }}>
+                      <Text style={styles.cellLabel}>Total:</Text>
+                      <Text style={{ fontSize: 13 }}>{asText(item.Subtotal)} {asText(item.Moneda)}</Text>
+                    </View>
+                  </View>
+                  <View style={styles.cell}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                      <Text style={styles.cellLabel}>Sol.:</Text>
+                      <Text style={{ fontSize: 13 }}>{asText(item.Solicitante)}</Text>
+                    </View>
+                  </View>
+                  <View style={styles.cell}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                      <Text style={styles.cellLabel}>Responsable:</Text>
+                      <Text style={{ fontSize: 13 }}>{asText(item.Responsable)}</Text>
+                    </View>
+                  </View>
+                  {item.SubOc !== undefined && item.SubOc !== null && item.SubOc !== '' ? (
+                    <View style={styles.cell}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        <Text style={styles.cellLabel}>Monto OC:</Text>
+                        <Text style={{ fontSize: 13 }}>{asText(item.SubOc)} {asText(item.Moneda)}</Text>
                       </View>
-                      <View style={[styles.cell, { flexDirection: 'row', alignItems: 'center' }]}> 
-                        <View style={{ flexDirection: 'row', alignItems: 'center', marginRight: 12 }}>
-                          <Text style={styles.cellLabel}>Fecha:</Text>
-                          <Text style={{ fontSize: 13 }}>{asText(item.FecIngreso)}</Text>
-                        </View>
-                        <View style={{ flexDirection: 'row', alignItems: 'center', marginRight: 12 }}>
-                          <Text style={styles.cellLabel}>Total:</Text>
-                          <Text style={{ fontSize: 13 }}>{asText(item.Subtotal)} {asText(item.Moneda)}</Text>
-                        </View>
+                    </View>
+                  ) : null}
+                  {expandido[uniqueId] ? (
+                    <View style={styles.detalleCard}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        <Text style={styles.cellLabel}>Fecha:</Text>
+                        <Text style={{ fontSize: 13 }}>{asText(item.FecIngreso)}</Text>
                       </View>
-                      <View style={styles.cell}>
-                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                          <Text style={styles.cellLabel}>Sol.:</Text>
-                          <Text style={{ fontSize: 13 }}>{asText(item.Solicitante)}</Text>
-                        </View>
+                      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        <Text style={styles.cellLabel}>Detalle:</Text>
+                        <Text style={{ fontSize: 13 }}>{asText(item.Detalle)}</Text>
                       </View>
-                      <View style={styles.cell}>
-                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                          <Text style={styles.cellLabel}>Responsable:</Text>
-                          <Text style={{ fontSize: 13 }}>{asText(item.Responsable)}</Text>
-                        </View>
+                      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        <Text style={styles.cellLabel}>Bien/Servicio:</Text>
+                        <Text style={{ fontSize: 13 }}>{asText(item.Bien)}</Text>
                       </View>
-                      {item.SubOc !== undefined && item.SubOc !== null && item.SubOc !== '' ? (
-                        <View style={styles.cell}>
-                          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                            <Text style={styles.cellLabel}>Monto OC:</Text>
-                            <Text style={{ fontSize: 13 }}>{asText(item.SubOc)} {asText(item.Moneda)}</Text>
-                          </View>
-                        </View>
-                      ) : null}
-                      {expandido[uniqueId] ? (
-                        <View style={styles.detalleCard}>
-                          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                            <Text style={styles.cellLabel}>Fecha:</Text>
-                            <Text style={{ fontSize: 13 }}>{asText(item.FecIngreso)}</Text>
-                          </View>
-                          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                            <Text style={styles.cellLabel}>Detalle:</Text>
-                            <Text style={{ fontSize: 13 }}>{asText(item.Detalle)}</Text>
-                          </View>
-                          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                            <Text style={styles.cellLabel}>Bien/Servicio:</Text>
-                            <Text style={{ fontSize: 13 }}>{asText(item.Bien)}</Text>
-                          </View>
-                          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                            <Text style={styles.cellLabel}>Comprobante:</Text>
-                            <Text style={{ fontSize: 13 }}>{asText(item.Comprobante)}</Text>
-                          </View>
-                          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                            <Text style={styles.cellLabel}>Gestor:</Text>
-                            <Text style={{ fontSize: 13 }}>{asText(item.Gestor)}</Text>
-                          </View>
-                          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                            <Text style={styles.cellLabel}>Proyecto:</Text>
-                            <Text style={{ fontSize: 13 }}>{asText(item.nombreProyecto)}</Text>
-                          </View>
-                          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                            <Text style={styles.cellLabel}>Site:</Text>
-                            <Text style={{ fontSize: 13 }}>{asText(item.Site)}</Text>
-                          </View>
-                          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                            <Text style={styles.cellLabel}>Subtotal:</Text>
-                            <Text style={{ fontSize: 13 }}>{asText(item.Subtotal)}</Text>
-                          </View>
-                          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                            <Text style={styles.cellLabel}>IGV:</Text>
-                            <Text style={{ fontSize: 13 }}>{asText(item.IGV)}</Text>
-                          </View>
-                          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                            <Text style={styles.cellLabel}>Estado:</Text>
-                            <Text style={{ fontSize: 13 }}>{asText(item.EstadoPla)}</Text>
-                          </View>
-                          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                            <Text style={styles.cellLabel}>Observación:</Text>
-                            <Text style={{ fontSize: 13 }}>{asText(item.Observacion)}</Text>
-                          </View>
-                          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                            <Text style={[styles.cellLabel, { color: '#7B3FF2', fontWeight: 'bold' }]}>Total del registro:</Text>
-                            <Text style={{ fontSize: 13, color: '#7B3FF2', fontWeight: 'bold' }}>{asText(item.Subtotal)}</Text>
-                          </View>
-                        </View>
-                      ) : null}
-                    </Card>
-                  );
-                }}
-              />
-            );
-          })()}
-        </Card>
+                      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        <Text style={styles.cellLabel}>Comprobante:</Text>
+                        <Text style={{ fontSize: 13 }}>{asText(item.Comprobante)}</Text>
+                      </View>
+                      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        <Text style={styles.cellLabel}>Gestor:</Text>
+                        <Text style={{ fontSize: 13 }}>{asText(item.Gestor)}</Text>
+                      </View>
+                      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        <Text style={styles.cellLabel}>Proyecto:</Text>
+                        <Text style={{ fontSize: 13 }}>{asText(item.nombreProyecto)}</Text>
+                      </View>
+                      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        <Text style={styles.cellLabel}>Site:</Text>
+                        <Text style={{ fontSize: 13 }}>{asText(item.Site)}</Text>
+                      </View>
+                      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        <Text style={styles.cellLabel}>Subtotal:</Text>
+                        <Text style={{ fontSize: 13 }}>{asText(item.Subtotal)}</Text>
+                      </View>
+                      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        <Text style={styles.cellLabel}>IGV:</Text>
+                        <Text style={{ fontSize: 13 }}>{asText(item.IGV)}</Text>
+                      </View>
+                      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        <Text style={styles.cellLabel}>Estado:</Text>
+                        <Text style={{ fontSize: 13 }}>{asText(item.EstadoPla)}</Text>
+                      </View>
+                      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        <Text style={styles.cellLabel}>Observación:</Text>
+                        <Text style={{ fontSize: 13 }}>{asText(item.Observacion)}</Text>
+                      </View>
+                      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        <Text style={[styles.cellLabel, { color: '#7B3FF2', fontWeight: 'bold' }]}>Total del registro:</Text>
+                        <Text style={{ fontSize: 13, color: '#7B3FF2', fontWeight: 'bold' }}>{asText(item.Subtotal)}</Text>
+                      </View>
+                    </View>
+                  ) : null}
+                </Card>
+              );
+            }}
+          />
+        </View>
         {tab === 'seleccionados' ? (
           <View style={{ width: '100%' }}>
             <View style={styles.actionButtonsRow}>
