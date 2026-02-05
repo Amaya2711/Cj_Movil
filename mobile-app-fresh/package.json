@@ -1,5 +1,6 @@
 {
   "dependencies": {
+      "metro": "0.81.0",
     "@expo/vector-icons": "^15.0.3",
     "@react-native-picker/picker": "2.11.1",
     "@react-navigation/native": "6.1.6",
