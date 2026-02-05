@@ -327,6 +327,7 @@ export default function ReAprobarPagosScreen({ navigation }) {
         {/* Cambios aquí: FlatList fuera del Card, en un View con flex:1 */}
         <View style={{ flex: 1 }}>
           <FlatList
+            style={{ flex: 1, minHeight: 0 }}
             data={tab === 'todos'
               ? (Array.isArray(resultados) ? resultados : [])
               : (Array.isArray(resultados)

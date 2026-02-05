@@ -393,6 +393,7 @@ export default function AprobarPagosScreen() {
                 ? resultados.filter(item => Array.isArray(seleccionados) && seleccionados.includes(String(item.Corre)))
                 : [])}
             keyExtractor={(item) => `${safe(item.Corre)}_${safe(item.IdSite)}`}
+            style={{ flex: 1, minHeight: 0 }}
             contentContainerStyle={{ paddingBottom: 24 }}
             keyboardShouldPersistTaps="handled"
             renderItem={({ item }) => {
