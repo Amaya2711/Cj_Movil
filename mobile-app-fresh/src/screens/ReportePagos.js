@@ -149,15 +149,14 @@ export default function ReportePagosScreen() {
       document.body.removeChild(a);
       window.URL.revokeObjectURL(url);
     } else if (Platform.OS === 'ios' || Platform.OS === 'windows') {
-      // Expo Go (expo-sharing y expo-file-system)
+      // Exportar solo usando expo-file-system (si está disponible)
       try {
         const FileSystem = await import('expo-file-system');
-        const Sharing = await import('expo-sharing');
         const fileUri = FileSystem.cacheDirectory + 'reporte_pagos.csv';
         await FileSystem.writeAsStringAsync(fileUri, csvString, { encoding: FileSystem.EncodingType.UTF8 });
-        await Sharing.shareAsync(fileUri, { mimeType: 'text/csv', dialogTitle: 'Exportar Resultados' });
+        alert('Archivo CSV exportado en: ' + fileUri);
       } catch (e) {
-        alert('Exportación no disponible en este dispositivo. Verifica que expo-file-system y expo-sharing estén instalados y que usas Expo Go.');
+        alert('No se pudo exportar el archivo CSV en este dispositivo.');
       }
     } else {
       alert('Exportación no disponible en este dispositivo.');
