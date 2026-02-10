@@ -630,18 +630,9 @@ export default function ReAprobarPagosScreen({ navigation }) {
                     let IdEstValue = 1;
                     if (accionActual === 'rechazar') IdEstValue = 3;
                     if (accionActual === 'observar') IdEstValue = 2;
-                    if (accionActual === 'aprobar') IdEstValue = 1; // Forzar 1 para ReAprobar
-                    const montoLimiteSoles = 2000;
-                    const montoLimiteDolares = 530;
+                    if (accionActual === 'aprobar') IdEstValue = 1; // Siempre 1 para ReAprobar
                     const paramsList = seleccionadosData.map(item => {
                       let IdEst = IdEstValue;
-                      if (accionActual === 'aprobar') {
-                        const monto = Number(item.Total);
-                        const moneda = (item.Moneda || '').toUpperCase();
-                        if ((moneda.includes('SOL') && monto > 2000) || (moneda.includes('DOL') && monto > 530)) {
-                          IdEst = 6;
-                        }
-                      }
                       return {
                         ipLocal: String(ipLocalMod),
                         CorFil: parseInt(item.Corre, 10),
@@ -653,10 +644,6 @@ export default function ReAprobarPagosScreen({ navigation }) {
                         IdReAprobador: codEmp !== undefined && codEmp !== null ? parseInt(codEmp, 10) : null
                       };
                     });
-                    if (accionActual === 'aprobar' && paramsList.some(p => p.IdEst === 6)) {
-                      setSnackbarMsg('Monto debe pasar por RE-APROBACION');
-                      setSnackbarVisible(true);
-                    }
                     (async () => {
                       let errores = [];
                       let sqlDebugsTemp = [];
