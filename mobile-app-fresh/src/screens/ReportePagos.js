@@ -4,6 +4,20 @@
     return label.length > 10 ? label.slice(0, 10) + '…' : label;
   };
 import React, { useState, useEffect } from 'react';
+// Utilidad para asegurar que todo lo que se renderiza en celdas sea string
+const asText = (v) => {
+  if (v === null || v === undefined) return '';
+  if (typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean') return String(v);
+  if (Array.isArray(v)) return v.map(asText).join(', ');
+  if (typeof v === 'object') {
+    try {
+      return JSON.stringify(v);
+    } catch {
+      return '[objeto]';
+    }
+  }
+  return String(v);
+};
 import { View, ScrollView, StyleSheet } from 'react-native';
 import { Text, Card, DataTable, ActivityIndicator, Button, TextInput } from 'react-native-paper';
 import { getReporteGastos } from '../api/ReporteGastos';
@@ -265,17 +279,21 @@ export default function ReportePagosScreen() {
                               : undefined
                           }
                         >
-                          {col === 'Subtotal' && !isNaN(Number(row[col]))
-                            ? Number(row[col]).toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-                            : col === 'Suma' && !isNaN(Number(row[col]))
-                            ? Number(row[col]).toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-                            : col === 'Moneda'
-                            ? (row[col] === 'SOLES' ? '(S/.)'
-                                : row[col] === 'DOLARES' ? '$'
-                                : row[col] === 'EUROS' ? '€'
-                                : row[col] === 'PESO DOMINICANO' ? 'RD$'
-                                : String(row[col]))
-                            : String(row[col])}
+                          {(() => {
+                            if (col === 'Subtotal' && !isNaN(Number(row[col]))) {
+                              return asText(Number(row[col]).toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+                            } else if (col === 'Suma' && !isNaN(Number(row[col]))) {
+                              return asText(Number(row[col]).toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+                            } else if (col === 'Moneda') {
+                              if (row[col] === 'SOLES') return asText('(S/.)');
+                              if (row[col] === 'DOLARES') return asText('$');
+                              if (row[col] === 'EUROS') return asText('€');
+                              if (row[col] === 'PESO DOMINICANO') return asText('RD$');
+                              return asText(row[col]);
+                            } else {
+                              return asText(row[col]);
+                            }
+                          })()}
                         </DataTable.Cell>
                       ))}
                   </DataTable.Row>

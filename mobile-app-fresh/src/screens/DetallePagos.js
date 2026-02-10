@@ -1,3 +1,17 @@
+// Utilidad para asegurar que todo lo que se renderiza en celdas sea string
+const asText = (v) => {
+  if (v === null || v === undefined) return '';
+  if (typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean') return String(v);
+  if (Array.isArray(v)) return v.map(asText).join(', ');
+  if (typeof v === 'object') {
+    try {
+      return JSON.stringify(v);
+    } catch {
+      return '[objeto]';
+    }
+  }
+  return String(v);
+};
 import React, { useEffect, useState } from 'react';
 import { View, ScrollView, StyleSheet } from 'react-native';
 import { Text, Card, ActivityIndicator, DataTable, Button } from 'react-native-paper';
@@ -35,19 +49,7 @@ export default function DetallePagosScreen({ route }) {
     fetchData();
   }, [proyecto, JSON.stringify(anos), page, pageSize]);
 
-  const asText = (v) => {
-    if (v === null || v === undefined) return '';
-    if (typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean') return String(v);
-    if (Array.isArray(v)) return v.map(asText).join(', ');
-    if (typeof v === 'object') {
-      try {
-        return JSON.stringify(v);
-      } catch {
-        return '[objeto]';
-      }
-    }
-    return String(v);
-  };
+  // ...existing code...
 
   const columnas = data[0] ? Object.keys(data[0]) : [];
 
@@ -57,7 +59,7 @@ export default function DetallePagosScreen({ route }) {
 
   return (
     <View style={styles.container}>
-      <Card style={styles.cardResultados}>
+      <Card style={[styles.cardResultados, { flex: 1 }]}> {/* Asegura que el Card ocupe todo el espacio disponible */}
         {/* Botones Anterior y Siguiente en la cabecera */}
         <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginBottom: 12 }}>
           {Math.ceil(total / pageSize) > 2 && (
@@ -109,9 +111,12 @@ export default function DetallePagosScreen({ route }) {
         ) : error ? (
           <Text style={{ color: 'red', marginTop: 8 }}>{error}</Text>
         ) : (
+          <View style={{ flex: 1 }}>
             <FlatList
               data={data}
               keyExtractor={(item, idx) => String(item.Corre || idx)}
+              showsVerticalScrollIndicator={true}
+              contentContainerStyle={{ paddingBottom: 16 }}
               renderItem={({ item }) => {
                 const uniqueId = String(item.Corre);
                 return (
@@ -192,6 +197,7 @@ export default function DetallePagosScreen({ route }) {
                 </View>
               }
             />
+          </View>
         )}
       </Card>
     </View>

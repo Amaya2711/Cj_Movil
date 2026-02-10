@@ -1,3 +1,17 @@
+// Utilidad para asegurar que todo lo que se renderiza en celdas sea string
+const asText = (v) => {
+  if (v === null || v === undefined) return '';
+  if (typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean') return String(v);
+  if (Array.isArray(v)) return v.map(asText).join(', ');
+  if (typeof v === 'object') {
+    try {
+      return JSON.stringify(v);
+    } catch {
+      return '[objeto]';
+    }
+  }
+  return String(v);
+};
 import React, { useState } from 'react';
 import { View, ScrollView, StyleSheet } from 'react-native';
 import { TextInput, Button, Card, Text, DataTable, ActivityIndicator } from 'react-native-paper';
@@ -82,7 +96,7 @@ export default function ReportePlanillaScreen() {
             {resultados.map((row, idx) => (
               <DataTable.Row key={idx}>
                 {Object.values(row).map((val, i) => (
-                  <DataTable.Cell key={i}>{String(val)}</DataTable.Cell>
+                  <DataTable.Cell key={i}>{asText(val)}</DataTable.Cell>
                 ))}
               </DataTable.Row>
             ))}

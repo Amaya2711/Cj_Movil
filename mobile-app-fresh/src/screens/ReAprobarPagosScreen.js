@@ -271,7 +271,7 @@ export default function ReAprobarPagosScreen({ navigation }) {
                     solicitantes.filter(s => typeof s.NombreEmpleado === 'string' && s.NombreEmpleado.toLowerCase().includes(filtroSolicitante.toLowerCase())).map(s => (
                       <List.Item
                         key={String(s.IdEmpleado || s.NombreEmpleado)}
-                        title={String(s.NombreEmpleado)}
+                        title={<Text>{asText(s.NombreEmpleado)}</Text>}
                         onPress={() => {
                           setFiltroSolicitante(s.NombreEmpleado);
                           setShowSuggestions(false);
