@@ -65,15 +65,21 @@ export default function DetallePagosScreen({ route }) {
               mode="outlined"
               onPress={() => setPage(1)}
               disabled={page === 1}
-              style={{ marginHorizontal: 8 }}
-            >Primera</Button>
+              style={{ marginHorizontal: 2, minWidth: 32, height: 32, padding: 0, borderRadius: 16, justifyContent: 'center', alignItems: 'center' }}
+              icon="page-first"
+              compact={true}
+              accessibilityLabel="Primera página"
+            />
           )}
           <Button
             mode="outlined"
             onPress={() => setPage(p => Math.max(1, p - 1))}
             disabled={page === 1}
-            style={{ marginHorizontal: 8 }}
-          >Anterior</Button>
+            style={{ marginHorizontal: 2, minWidth: 32, height: 32, padding: 0, borderRadius: 16, justifyContent: 'center', alignItems: 'center' }}
+            icon="chevron-left"
+            compact={true}
+            accessibilityLabel="Anterior"
+          />
           <Text style={{ marginHorizontal: 8 }}>
             Página {page} de {Math.max(1, Math.ceil(total / pageSize))}
           </Text>
@@ -81,15 +87,21 @@ export default function DetallePagosScreen({ route }) {
             mode="outlined"
             onPress={() => setPage(p => (p < Math.ceil(total / pageSize) ? p + 1 : p))}
             disabled={page >= Math.ceil(total / pageSize)}
-            style={{ marginHorizontal: 8 }}
-          >Siguiente</Button>
+            style={{ marginHorizontal: 2, minWidth: 32, height: 32, padding: 0, borderRadius: 16, justifyContent: 'center', alignItems: 'center' }}
+            icon="chevron-right"
+            compact={true}
+            accessibilityLabel="Siguiente"
+          />
           {Math.ceil(total / pageSize) > 2 && (
             <Button
               mode="outlined"
               onPress={() => setPage(Math.ceil(total / pageSize))}
               disabled={page >= Math.ceil(total / pageSize)}
-              style={{ marginHorizontal: 8 }}
-            >Última</Button>
+              style={{ marginHorizontal: 2, minWidth: 32, height: 32, padding: 0, borderRadius: 16, justifyContent: 'center', alignItems: 'center' }}
+              icon="page-last"
+              compact={true}
+              accessibilityLabel="Última página"
+            />
           )}
         </View>
         {loading ? (

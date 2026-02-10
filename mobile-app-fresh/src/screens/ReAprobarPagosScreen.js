@@ -288,8 +288,8 @@ export default function ReAprobarPagosScreen({ navigation }) {
               style={styles.searchButton}
               icon="magnify"
               contentStyle={{ flexDirection: 'row-reverse', height: 36 }}
-              accessibilityLabel="Reporte de Gastos"
-            >Reporte Gastos</Button>
+              accessibilityLabel="Buscar"
+            />
           </View>
           <View style={styles.tabsContainerRow}>
             <Button
@@ -327,36 +327,43 @@ export default function ReAprobarPagosScreen({ navigation }) {
         {/* Etiqueta Resultados y Checkbox Todos antes del FlatList */}
         {/* Ajuste automático para scroll completo de todos los registros */}
         <View style={{ flex: 1, minHeight: 0 }}>
-          <Text style={styles.seccionTitulo}>Resultados</Text>
-          {/* Checkbox Todos */}
-          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
-            <Checkbox
-              status={(() => {
-                const pageData = tab === 'todos'
-                  ? (Array.isArray(resultados) ? resultados : [])
-                  : (Array.isArray(resultados)
-                    ? resultados.filter(item => Array.isArray(seleccionados) && seleccionados.includes(String(item.Corre)))
-                    : []);
-                if (pageData.length === 0) return 'unchecked';
-                const allSelected = pageData.every(item => seleccionados.includes(String(item.Corre)));
-                return allSelected ? 'checked' : 'unchecked';
-              })()}
-              onPress={() => {
-                const pageData = tab === 'todos'
-                  ? (Array.isArray(resultados) ? resultados : [])
-                  : (Array.isArray(resultados)
-                    ? resultados.filter(item => Array.isArray(seleccionados) && seleccionados.includes(String(item.Corre)))
-                    : []);
-                const pageIds = pageData.map(item => String(item.Corre));
-                const allSelected = pageIds.every(id => seleccionados.includes(id));
-                if (allSelected) {
-                  setSeleccionados(prev => prev.filter(id => !pageIds.includes(id)));
-                } else {
-                  setSeleccionados(prev => Array.from(new Set([...prev, ...pageIds])));
-                }
-              }}
-            />
-            <Text style={{ fontSize: 15, color: '#333', fontWeight: 'bold', marginLeft: 2 }}>Todos</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8, justifyContent: 'space-between' }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Text style={styles.seccionTitulo}>Resultados</Text>
+              <Checkbox
+                status={(() => {
+                  const pageData = tab === 'todos'
+                    ? (Array.isArray(resultados) ? resultados : [])
+                    : (Array.isArray(resultados)
+                      ? resultados.filter(item => Array.isArray(seleccionados) && seleccionados.includes(String(item.Corre)))
+                      : []);
+                  if (pageData.length === 0) return 'unchecked';
+                  const allSelected = pageData.every(item => seleccionados.includes(String(item.Corre)));
+                  return allSelected ? 'checked' : 'unchecked';
+                })()}
+                onPress={() => {
+                  const pageData = tab === 'todos'
+                    ? (Array.isArray(resultados) ? resultados : [])
+                    : (Array.isArray(resultados)
+                      ? resultados.filter(item => Array.isArray(seleccionados) && seleccionados.includes(String(item.Corre)))
+                      : []);
+                  const pageIds = pageData.map(item => String(item.Corre));
+                  const allSelected = pageIds.every(id => seleccionados.includes(id));
+                  if (allSelected) {
+                    setSeleccionados(prev => prev.filter(id => !pageIds.includes(id)));
+                  } else {
+                    setSeleccionados(prev => Array.from(new Set([...prev, ...pageIds])));
+                  }
+                }}
+                style={{ marginLeft: 8 }}
+              />
+              <Text style={{ fontSize: 15, color: '#333', fontWeight: 'bold', marginLeft: 2 }}>Todos</Text>
+            </View>
+            <Text style={{ color: '#7B3FF2', fontWeight: 'bold', fontSize: 15, textAlign: 'right' }}>
+              {tab === 'todos'
+                ? `${Array.isArray(resultados) ? resultados.length : 0} coincidencia${Array.isArray(resultados) && resultados.length === 1 ? '' : 's'}`
+                : `${Array.isArray(resultados) && Array.isArray(seleccionados) ? resultados.filter(item => seleccionados.includes(String(item.Corre))).length : 0} coincidencia${Array.isArray(resultados) && Array.isArray(seleccionados) && resultados.filter(item => seleccionados.includes(String(item.Corre))).length === 1 ? '' : 's'}`}
+            </Text>
           </View>
           <FlatList
             data={tab === 'todos'
