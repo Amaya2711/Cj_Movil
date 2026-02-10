@@ -346,40 +346,23 @@ export default function AprobarPagosScreen() {
         </Card>
         {/* Etiqueta Resultados y Checkbox Todos antes del FlatList */}
         <View style={{ flex: 1 }}>
-          <Text style={styles.seccionTitulo}>Resultados</Text>
-          {/* Checkbox Todos */}
-          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
-            <Checkbox
-              status={(() => {
-                // Si todos los elementos de la página actual están seleccionados
-                const pageData = tab === 'todos'
-                  ? (Array.isArray(resultados) ? resultados.slice((page - 1) * pageSize, page * pageSize) : [])
-                  : (Array.isArray(resultados)
-                    ? resultados.filter(item => Array.isArray(seleccionados) && seleccionados.includes(String(item.Corre)))
-                    : []);
-                if (pageData.length === 0) return 'unchecked';
-                const allSelected = pageData.every(item => seleccionados.includes(String(item.Corre)));
-                return allSelected ? 'checked' : 'unchecked';
-              })()}
-              onPress={() => {
-                // Seleccionar/desmarcar todos los de la página actual
-                const pageData = tab === 'todos'
-                  ? (Array.isArray(resultados) ? resultados.slice((page - 1) * pageSize, page * pageSize) : [])
-                  : (Array.isArray(resultados)
-                    ? resultados.filter(item => Array.isArray(seleccionados) && seleccionados.includes(String(item.Corre)))
-                    : []);
-                const pageIds = pageData.map(item => String(item.Corre));
-                const allSelected = pageIds.every(id => seleccionados.includes(id));
-                if (allSelected) {
-                  // Desmarcar todos los de la página
-                  setSeleccionados(prev => prev.filter(id => !pageIds.includes(id)));
-                } else {
-                  // Marcar todos los de la página
-                  setSeleccionados(prev => Array.from(new Set([...prev, ...pageIds])));
-                }
-              }}
-            />
-            <Text style={{ fontSize: 15, color: '#333', fontWeight: 'bold', marginLeft: 2 }}>Todos</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8, justifyContent: 'space-between' }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Text style={styles.seccionTitulo}>Resultados</Text>
+              <Checkbox
+                status={showCodVal ? 'checked' : 'unchecked'}
+                onPress={() => {
+                  setShowCodVal(prev => !prev);
+                }}
+                style={{ marginLeft: 8 }}
+              />
+              <Text style={{ fontSize: 15, color: '#333', fontWeight: 'bold', marginLeft: 2 }}>Todos</Text>
+            </View>
+            <Text style={{ fontSize: 15, color: '#7B3FF2', fontWeight: 'bold', textAlign: 'right', minWidth: 120 }}>
+              {tab === 'todos'
+                ? `${Array.isArray(resultados) ? resultados.length : 0} coincidencias`
+                : `${Array.isArray(resultados) ? resultados.filter(item => Array.isArray(seleccionados) && seleccionados.includes(String(item.Corre))).length : 0} coincidencias`}
+            </Text>
           </View>
           {/* Botones de paginación solo si hay más de 1 página y en la pestaña Pendientes */}
           {tab === 'todos' && Math.max(1, Math.ceil((Array.isArray(resultados) ? resultados.length : 0) / pageSize)) > 1 && (

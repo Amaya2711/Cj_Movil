@@ -325,13 +325,13 @@ export default function ReAprobarPagosScreen({ navigation }) {
           </View>
         </Card>
         {/* Etiqueta Resultados y Checkbox Todos antes del FlatList */}
-        <View style={{ flex: 1 }}>
+        {/* Ajuste automático para scroll completo de todos los registros */}
+        <View style={{ flex: 1, minHeight: 0 }}>
           <Text style={styles.seccionTitulo}>Resultados</Text>
           {/* Checkbox Todos */}
           <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
             <Checkbox
               status={(() => {
-                // Si todos los elementos de la página actual están seleccionados
                 const pageData = tab === 'todos'
                   ? (Array.isArray(resultados) ? resultados : [])
                   : (Array.isArray(resultados)
@@ -342,7 +342,6 @@ export default function ReAprobarPagosScreen({ navigation }) {
                 return allSelected ? 'checked' : 'unchecked';
               })()}
               onPress={() => {
-                // Seleccionar/desmarcar todos los de la página actual
                 const pageData = tab === 'todos'
                   ? (Array.isArray(resultados) ? resultados : [])
                   : (Array.isArray(resultados)
@@ -351,10 +350,8 @@ export default function ReAprobarPagosScreen({ navigation }) {
                 const pageIds = pageData.map(item => String(item.Corre));
                 const allSelected = pageIds.every(id => seleccionados.includes(id));
                 if (allSelected) {
-                  // Desmarcar todos los de la página
                   setSeleccionados(prev => prev.filter(id => !pageIds.includes(id)));
                 } else {
-                  // Marcar todos los de la página
                   setSeleccionados(prev => Array.from(new Set([...prev, ...pageIds])));
                 }
               }}
@@ -362,7 +359,6 @@ export default function ReAprobarPagosScreen({ navigation }) {
             <Text style={{ fontSize: 15, color: '#333', fontWeight: 'bold', marginLeft: 2 }}>Todos</Text>
           </View>
           <FlatList
-            style={{ flex: 1, minHeight: 0 }}
             data={tab === 'todos'
               ? (Array.isArray(resultados) ? resultados : [])
               : (Array.isArray(resultados)
@@ -371,6 +367,7 @@ export default function ReAprobarPagosScreen({ navigation }) {
             keyExtractor={(item) => `${safe(item.Corre)}_${safe(item.IdSite)}`}
             contentContainerStyle={{ paddingBottom: 24 }}
             keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={true}
             renderItem={({ item }) => {
               const uniqueId = String(item.Corre);
               return (

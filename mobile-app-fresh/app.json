@@ -20,6 +20,15 @@
     },
     "android": {
       "package": "com.mas2711.mobileappfresh"
-    }
+    },
+    "plugins": [
+      "expo-font"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "30dc358d-94b7-4c65-af8e-048269be241f"
+      }
+    },
+    "owner": "mas2711"
   }
 }

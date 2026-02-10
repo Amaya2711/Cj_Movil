@@ -1,22 +1,11 @@
+import 'react-native-get-random-values';
 import React, { useEffect, useState } from 'react';
 import * as Font from 'expo-font';
 import { Platform, View, Text } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import 'react-native-gesture-handler';
-// Hack para forzar la ruta de la fuente en web
-if (typeof window !== 'undefined' && Platform.OS === 'web') {
-  try {
-    // @ts-ignore
-    MaterialCommunityIcons.font = {
-      ...MaterialCommunityIcons.font,
-      uri: '/assets/fonts/MaterialCommunityIcons.6e435534bd35da5fef04168860a9b8fa.ttf',
-    };
-  } catch (e) {
-    // Silenciar error si la propiedad no existe
-  }
-}
+// Eliminado hack de modificación de fuente para compatibilidad con React Native moderno
 import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
 import { Provider as PaperProvider, DefaultTheme, Button } from 'react-native-paper';
 import AppNavigator from './src/navigation/AppNavigator';
 
@@ -25,8 +14,6 @@ import MainMenuScreen from './src/screens/MainMenuScreen';
 import AprobarPagosScreen from './src/screens/AprobarPagosScreen';
 import ReAprobarPagosScreen from './src/screens/ReAprobarPagosScreen';
 import { UserProvider } from './src/context/UserContext';
-
-const Stack = createStackNavigator();
 
 const theme = {
   ...DefaultTheme,
