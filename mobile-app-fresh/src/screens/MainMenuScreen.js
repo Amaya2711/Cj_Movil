@@ -11,7 +11,7 @@ export default function MainMenuScreen({ navigation }) {
     { label: 'Aprobar', onPress: () => { console.log('Botón Aprobar presionado'); navigation.navigate('AprobarPagos'); } },
     { label: 'Re-Aprobar', onPress: () => { console.log('Botón Re-Aprobar presionado'); navigation.navigate('ReAprobarPagos'); } },
     { label: 'Reporte', onPress: () => { console.log('Botón Reporte presionado'); navigation.navigate('ReportePagos'); } },
-    { label: 'Opción 4', onPress: () => {} },
+    { label: 'Asistencia', onPress: () => { console.log('Botón Asistencia presionado'); navigation.navigate('Asistencia'); } },
     { label: 'Opción 5', onPress: () => {} },
     { label: 'Opción 6', onPress: () => {} },
     { label: 'Opción 7', onPress: () => {} },
@@ -24,18 +24,22 @@ export default function MainMenuScreen({ navigation }) {
     <View style={styles.container}>
       <Text style={styles.bienvenida}>Bienvenido, {String(nombreEmpleado)}</Text>
       <View style={styles.grid}>
-        {OPTIONS.slice(0, SEGMENTS).map((opt, idx) => (
-          <View key={idx} style={styles.segment}>
-            <Button
-              mode="contained"
-              onPress={opt.onPress}
-              style={styles.menuButton}
-              disabled={idx > 1}
-            >
-              {opt.label}
-            </Button>
-          </View>
-        ))}
+        {OPTIONS.slice(0, SEGMENTS).map((opt, idx) => {
+          // El botón 'Asistencia' debe estar activo
+          const isAsistencia = opt.label === 'Asistencia';
+          return (
+            <View key={idx} style={styles.segment}>
+              <Button
+                mode="contained"
+                onPress={opt.onPress}
+                style={styles.menuButton}
+                disabled={!isAsistencia && idx > 1}
+              >
+                {opt.label}
+              </Button>
+            </View>
+          );
+        })}
       </View>
       <Button mode="outlined" onPress={handleLogout} style={styles.logoutButton}>
         Salir / Cerrar sesión

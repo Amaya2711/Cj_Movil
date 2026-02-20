@@ -41,6 +41,10 @@ export default function ReAprobarPagosScreen({ navigation }) {
   const [snackbarMsg, setSnackbarMsg] = useState('');
   const [loadingDatosOc, setLoadingDatosOc] = useState(false);
   const [solicitantes, setSolicitantes] = useState([]);
+  // Filtro de proyecto
+  const [filtroProyecto, setFiltroProyecto] = useState('');
+  const [proyectos, setProyectos] = useState([]);
+  const [showProjectSuggestions, setShowProjectSuggestions] = useState(false);
 
   const asText = (v) => {
     if (v === null || v === undefined) return '';
@@ -121,6 +125,13 @@ export default function ReAprobarPagosScreen({ navigation }) {
       const data = await getReaprobaciones({});
       setResultados(Array.isArray(data.result) ? data.result : []);
       setResultadosOriginales(Array.isArray(data.result) ? data.result : []);
+      // Extraer proyectos únicos de la búsqueda inicial
+      if (Array.isArray(data.result)) {
+        const proyectosUnicos = Array.from(new Set(data.result.map(item => item.nombreProyecto || item.Proyecto || ''))).filter(Boolean);
+        setProyectos(proyectosUnicos);
+      } else {
+        setProyectos([]);
+      }
     } catch (error) {
       setResultados([]);
       setResultadosOriginales([]);
@@ -134,9 +145,13 @@ export default function ReAprobarPagosScreen({ navigation }) {
     setSeleccionados([]);
     const seleccionado = solicitantes.find(s => String(s.NombreEmpleado) === filtroSolicitante);
     let idSolicitante = 0;
+    let proyectoValido = '';
+    if (filtroProyecto && proyectos.includes(filtroProyecto)) {
+      proyectoValido = filtroProyecto;
+    }
     if (seleccionado && seleccionado.IdEmpleado) {
       idSolicitante = seleccionado.IdEmpleado;
-    } else {
+    } else if (!proyectoValido) {
       Alert.alert(
         'Aviso',
         'Solicitante no existe, mostrando todos los datos',
@@ -145,11 +160,24 @@ export default function ReAprobarPagosScreen({ navigation }) {
     }
     try {
       const reaprobaciones = await getReaprobaciones({ IdSolicitante: idSolicitante });
-      setResultados(Array.isArray(reaprobaciones.result) ? reaprobaciones.result : []);
-      setResultadosOriginales(Array.isArray(reaprobaciones.result) ? reaprobaciones.result : []);
+      let resultadosFiltrados = Array.isArray(reaprobaciones.result) ? reaprobaciones.result : [];
+      // Si hay proyecto válido, filtrar por proyecto
+      if (proyectoValido) {
+        resultadosFiltrados = resultadosFiltrados.filter(item => (item.nombreProyecto || item.Proyecto || '').toLowerCase() === proyectoValido.toLowerCase());
+      }
+      setResultados(resultadosFiltrados);
+      setResultadosOriginales(resultadosFiltrados);
+      // Extraer proyectos únicos de la búsqueda
+      if (Array.isArray(reaprobaciones.result)) {
+        const proyectosUnicos = Array.from(new Set(reaprobaciones.result.map(item => item.nombreProyecto || item.Proyecto || ''))).filter(Boolean);
+        setProyectos(proyectosUnicos);
+      } else {
+        setProyectos([]);
+      }
     } catch (error) {
       setResultados([]);
       setResultadosOriginales([]);
+      setProyectos([]);
     }
   };
 
@@ -284,12 +312,47 @@ export default function ReAprobarPagosScreen({ navigation }) {
             </View>
             <Button
               mode="contained"
-              onPress={() => navigation.navigate('ReportePagos')}
+              onPress={buscar}
               style={styles.searchButton}
               icon="magnify"
               contentStyle={{ flexDirection: 'row-reverse', height: 36 }}
               accessibilityLabel="Buscar"
             />
+          </View>
+          <View style={styles.filtrosRow}>
+            <View style={{ flex: 1 }}>
+              <TextInput
+                placeholder="Filtrar por proyecto"
+                value={filtroProyecto}
+                onChangeText={text => {
+                  setFiltroProyecto(text);
+                  setShowProjectSuggestions(true);
+                }}
+                onFocus={() => setShowProjectSuggestions(true)}
+                onBlur={() => setTimeout(() => setShowProjectSuggestions(false), 200)}
+                style={{ backgroundColor: '#fff', minHeight: 32, height: 32, marginTop: 0 }}
+                dense={true}
+                right={proyectos.length > 0 ? <TextInput.Icon icon="menu-down" /> : null}
+              />
+              {proyectos.length > 0 && showProjectSuggestions && (
+                <Card style={{ maxHeight: 200, marginBottom: 8 }}>
+                  {proyectos.filter(p => p.toLowerCase().includes(filtroProyecto.toLowerCase())).length === 0 ? (
+                    <List.Item title={<Text>No se encontraron proyectos</Text>} />
+                  ) : (
+                    proyectos.filter(p => p.toLowerCase().includes(filtroProyecto.toLowerCase())).map(p => (
+                      <List.Item
+                        key={p}
+                        title={p}
+                        onPress={() => {
+                          setFiltroProyecto(p);
+                          setShowProjectSuggestions(false);
+                        }}
+                      />
+                    ))
+                  )}
+                </Card>
+              )}
+            </View>
           </View>
           <View style={styles.tabsContainerRow}>
             <Button
@@ -378,7 +441,7 @@ export default function ReAprobarPagosScreen({ navigation }) {
             renderItem={({ item }) => {
               const uniqueId = String(item.Corre);
               return (
-                <Card style={{ marginBottom: 12, padding: 8 }}>
+                <Card style={{ marginBottom: 4, padding: 8 }}>
                   <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
                     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                       <Checkbox
@@ -423,12 +486,11 @@ export default function ReAprobarPagosScreen({ navigation }) {
                   </View>
                   <View style={[styles.cell, { flexDirection: 'row', alignItems: 'center' }]}> 
                     <View style={{ flexDirection: 'row', alignItems: 'center', marginRight: 12 }}>
-                      <Text style={styles.cellLabel}>Fecha:</Text>
                       <Text style={{ fontSize: 13 }}>{asText(item.FecIngreso)}</Text>
                     </View>
                     <View style={{ flexDirection: 'row', alignItems: 'center', marginRight: 12 }}>
-                      <Text style={styles.cellLabel}>Total:</Text>
-                      <Text style={{ fontSize: 13 }}>{asText(item.Subtotal)} {asText(item.Moneda)}</Text>
+                      <Text style={styles.cellLabel}>Proyecto:</Text>
+                      <Text style={{ fontSize: 13 }}>{asText(item.nombreProyecto || item.Proyecto)}</Text>
                     </View>
                   </View>
                   <View style={styles.cell}>
@@ -443,6 +505,13 @@ export default function ReAprobarPagosScreen({ navigation }) {
                       <Text style={{ fontSize: 13 }}>{asText(item.Responsable)}</Text>
                     </View>
                   </View>
+                  <View style={styles.cell}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                      <Text style={{ fontSize: 13, marginRight: 12 }}>{asText(item.Site)}</Text>
+                      <Text style={styles.cellLabel}>Total:</Text>
+                      <Text style={{ fontSize: 13 }}>{asText(item.Subtotal)} {asText(item.Moneda)}</Text>
+                    </View>
+                  </View>
                   {item.SubOc !== undefined && item.SubOc !== null && item.SubOc !== '' ? (
                     <View style={styles.cell}>
                       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -454,8 +523,13 @@ export default function ReAprobarPagosScreen({ navigation }) {
                   {expandido[uniqueId] ? (
                     <View style={styles.detalleCard}>
                       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                        <Text style={styles.cellLabel}>Fecha:</Text>
                         <Text style={{ fontSize: 13 }}>{asText(item.FecIngreso)}</Text>
+                      </View>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 2 }}>
+                        <Text style={styles.cellLabel}>Site:</Text>
+                        <Text style={{ fontSize: 13, marginRight: 8 }}>{asText(item.Site)}</Text>
+                        <Text style={styles.cellLabel}>Proyecto:</Text>
+                        <Text style={{ fontSize: 13 }}>{asText(item.nombreProyecto || item.Proyecto)}</Text>
                       </View>
                       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                         <Text style={styles.cellLabel}>Detalle:</Text>
@@ -468,38 +542,6 @@ export default function ReAprobarPagosScreen({ navigation }) {
                       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                         <Text style={styles.cellLabel}>Comprobante:</Text>
                         <Text style={{ fontSize: 13 }}>{asText(item.Comprobante)}</Text>
-                      </View>
-                      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                        <Text style={styles.cellLabel}>Gestor:</Text>
-                        <Text style={{ fontSize: 13 }}>{asText(item.Gestor)}</Text>
-                      </View>
-                      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                        <Text style={styles.cellLabel}>Proyecto:</Text>
-                        <Text style={{ fontSize: 13 }}>{asText(item.nombreProyecto)}</Text>
-                      </View>
-                      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                        <Text style={styles.cellLabel}>Site:</Text>
-                        <Text style={{ fontSize: 13 }}>{asText(item.Site)}</Text>
-                      </View>
-                      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                        <Text style={styles.cellLabel}>Subtotal:</Text>
-                        <Text style={{ fontSize: 13 }}>{asText(item.Subtotal)}</Text>
-                      </View>
-                      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                        <Text style={styles.cellLabel}>IGV:</Text>
-                        <Text style={{ fontSize: 13 }}>{asText(item.IGV)}</Text>
-                      </View>
-                      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                        <Text style={styles.cellLabel}>Estado:</Text>
-                        <Text style={{ fontSize: 13 }}>{asText(item.EstadoPla)}</Text>
-                      </View>
-                      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                        <Text style={styles.cellLabel}>Observación:</Text>
-                        <Text style={{ fontSize: 13 }}>{asText(item.Observacion)}</Text>
-                      </View>
-                      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                        <Text style={[styles.cellLabel, { color: '#7B3FF2', fontWeight: 'bold' }]}>Total del registro:</Text>
-                        <Text style={{ fontSize: 13, color: '#7B3FF2', fontWeight: 'bold' }}>{asText(item.Subtotal)}</Text>
                       </View>
                     </View>
                   ) : null}
@@ -697,10 +739,40 @@ export default function ReAprobarPagosScreen({ navigation }) {
                     montoPagoFicticio = Number(row.SubPlanilla) + Number(registroOriginal.Subtotal);
                     montoPago = Number(row.SubPlanilla);
                   }
+                  // Lógica para mostrar solo la etiqueta de estado de aprobación
+                  const tieneFecha = (fecha) => {
+                    if (!fecha) return false;
+                    if (typeof fecha === 'string') {
+                      return fecha.trim() !== '' && fecha.trim() !== 'null' && fecha.trim() !== 'undefined';
+                    }
+                    return true;
+                  };
+                  let estadoAprobacion = 'X APROBAR';
+                  if (tieneFecha(row['FechaAprobador3'])) {
+                    estadoAprobacion = 'APROBADO';
+                  } else if (tieneFecha(row['FechaAprobador2'])) {
+                    estadoAprobacion = 'APROBACION 2';
+                  } else if (tieneFecha(row['FechaAprobador1'])) {
+                    estadoAprobacion = 'APROBACION 1';
+                  }
+
                   return (
                     <View key={idx} style={{ marginBottom: 12 }}>
+                      {/* Etiqueta de estado de aprobación */}
+                      <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
+                        <Text style={{
+                          fontWeight: 'bold',
+                          color:
+                            estadoAprobacion === 'APROBADO' ? '#4CAF50' :
+                            estadoAprobacion === 'APROBACION 2' ? '#2196F3' :
+                            estadoAprobacion === 'APROBACION 1' ? '#FF9800' :
+                            '#F44336',
+                          fontSize: 15,
+                          marginRight: 8
+                        }}>{estadoAprobacion}</Text>
+                      </View>
                       {Object.entries(row)
-                        .filter(([key]) => key !== 'IdMoneda')
+                        .filter(([key]) => key !== 'IdMoneda' && key !== '' && !['max(c.FechaAprobador1)','max(c.FechaAprobador2)','max(c.FechaAprobador3)','FechaAprobador1','FechaAprobador2','FechaAprobador3'].includes(key))
                         .map(([key, value]) => {
                           let label = key;
                           if (key === 'idoc') label = 'OC';

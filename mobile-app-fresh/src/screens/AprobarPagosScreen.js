@@ -835,10 +835,44 @@ export default function AprobarPagosScreen() {
                     montoPagoFicticio = Number(row.SubPlanilla) + Number(registroOriginal.Subtotal);
                     montoPago = Number(row.SubPlanilla);
                   }
+
+                  // Lógica para mostrar solo la etiqueta de estado de aprobación
+                  const tieneFecha = (fecha) => {
+                    if (!fecha) return false;
+                    if (typeof fecha === 'string') {
+                      // Considerar no nulo y no vacío
+                      return fecha.trim() !== '' && fecha.trim() !== 'null' && fecha.trim() !== 'undefined';
+                    }
+                    return true;
+                  };
+                  let estadoAprobacion = 'X APROBAR';
+                  if (tieneFecha(row['FechaAprobador3'])) {
+                    estadoAprobacion = 'APROBADO';
+                  } else if (tieneFecha(row['FechaAprobador2'])) {
+                    estadoAprobacion = 'APROBACION 2';
+                  } else if (tieneFecha(row['FechaAprobador1'])) {
+                    estadoAprobacion = 'APROBACION 1';
+                  }
+
+                  // Debug: mostrar los datos recibidos para este row
+                  console.log('Datos OC row:', row);
                   return (
                     <View key={idx} style={{ marginBottom: 12 }}>
+                      {/* Etiqueta de estado de aprobación */}
+                      <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
+                        <Text style={{
+                          fontWeight: 'bold',
+                          color:
+                            estadoAprobacion === 'APROBADO' ? '#4CAF50' :
+                            estadoAprobacion === 'APROBACION 2' ? '#2196F3' :
+                            estadoAprobacion === 'APROBACION 1' ? '#FF9800' :
+                            '#F44336',
+                          fontSize: 15,
+                          marginRight: 8
+                        }}>{estadoAprobacion}</Text>
+                      </View>
                       {Object.entries(row)
-                        .filter(([key]) => key !== 'IdMoneda')
+                        .filter(([key]) => key !== 'IdMoneda' && key !== '' && !['max(c.FechaAprobador1)','max(c.FechaAprobador2)','max(c.FechaAprobador3)','FechaAprobador1','FechaAprobador2','FechaAprobador3'].includes(key))
                         .map(([key, value]) => {
                           let label = key;
                           if (key === 'idoc') label = 'OC';
@@ -852,6 +886,8 @@ export default function AprobarPagosScreen() {
                             </View>
                           );
                         })}
+                      {/* Mostrar fechas de aprobadores si existen */}
+                      {/* Las fechas de aprobadores ya no se muestran */}
                       {registroOriginal && (
                         <View>
                           <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'flex-start', marginTop: 8 }}>
