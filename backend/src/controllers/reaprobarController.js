@@ -53,8 +53,6 @@ export const consultarReaprobaciones = async (req, res) => {
     res.status(500).json({ message: 'Error al consultar reaprobaciones', error: error.message });
   }
 };
-<<<<<<< HEAD
-=======
 
 export const consultarHormigas = async (req, res) => {
   try {
@@ -70,4 +68,3 @@ export const consultarHormigas = async (req, res) => {
     res.status(500).json({ message: 'Error al consultar hormigas', error: error.message });
   }
 };
->>>>>>> main
