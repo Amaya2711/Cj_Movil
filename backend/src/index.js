@@ -11,6 +11,7 @@ import detallePagosRoutes from './routes/detallePagos.js';
 
 import aprobarPlanillaRoutes from './routes/aprobarPlanilla.js';
 import reaprobacionesRoutes from './routes/reaprobaciones.js';
+import hormigasRoutes from './routes/hormigas.js';
 import gastosRoutes from './routes/gastos.js';
 import ocRoutes from './routes/oc.js';
 
@@ -34,6 +35,7 @@ app.use('/api/reportes/detalle-pagos', detallePagosRoutes);
 
 // Nueva ruta para reaprobaciones
 app.use('/api/Reaprobaciones', reaprobacionesRoutes);
+app.use('/api/Hormigas', hormigasRoutes);
 
 app.get('/', (req, res) => {
   res.send('API backend funcionando');

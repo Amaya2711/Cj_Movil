@@ -1,12 +1,16 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { View, StyleSheet, FlatList, Text as RNText } from 'react-native';
-import { Card, Button, TextInput, Text, List } from 'react-native-paper';
+import { Card, Button, TextInput, Text, List, Checkbox } from 'react-native-paper';
 import { getSolicitantes } from '../api/solicitantes';
 
 export default function AsistenciaScreen() {
   const [filtroSolicitante, setFiltroSolicitante] = useState('');
   const [filtroFechaInicial, setFiltroFechaInicial] = useState('');
   const [filtroFechaFinal, setFiltroFechaFinal] = useState('');
+  const [errorFechaInicial, setErrorFechaInicial] = useState('');
+  const [errorFechaFinal, setErrorFechaFinal] = useState('');
+  const [filtroObservadas, setFiltroObservadas] = useState(false);
+  const [filtroFueraDeZona, setFiltroFueraDeZona] = useState(false);
   const [detalleBusqueda, setDetalleBusqueda] = useState([]);
   const [tab, setTab] = useState('detalle');
   const [solicitantes, setSolicitantes] = useState([]);
@@ -25,11 +29,58 @@ export default function AsistenciaScreen() {
     }
   };
 
+  const esFechaValida = (fechaTexto) => {
+    const valor = String(fechaTexto || '').trim();
+    if (!valor) return true;
+    const match = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(valor);
+    if (!match) return false;
+    const dia = Number(match[1]);
+    const mes = Number(match[2]);
+    const anio = Number(match[3]);
+    const fecha = new Date(anio, mes - 1, dia);
+    return (
+      fecha.getFullYear() === anio &&
+      fecha.getMonth() === mes - 1 &&
+      fecha.getDate() === dia
+    );
+  };
+
+  const parseFecha = (fechaTexto) => {
+    const match = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(String(fechaTexto || '').trim());
+    if (!match) return null;
+    return new Date(Number(match[3]), Number(match[2]) - 1, Number(match[1]));
+  };
+
+  const fechaMinima = new Date(2024, 0, 1);
+
+  const validarFechaCampo = (fechaTexto) => {
+    const valor = String(fechaTexto || '').trim();
+    if (!valor) return '';
+    if (!esFechaValida(valor)) return 'Formato inválido (dd/mm/yyyy)';
+    const fecha = parseFecha(valor);
+    if (fecha && fecha < fechaMinima) return 'La fecha mínima es 01/01/2024';
+    return '';
+  };
+
+  const validarFechas = () => {
+    const errorInicial = validarFechaCampo(filtroFechaInicial);
+    const errorFinal = validarFechaCampo(filtroFechaFinal);
+
+    setErrorFechaInicial(errorInicial);
+    setErrorFechaFinal(errorFinal);
+
+    return !errorInicial && !errorFinal;
+  };
+
   const buscar = () => {
+    if (!validarFechas()) return;
+
     const detalle = [
       { key: 'Solicitante', value: filtroSolicitante.trim() || 'Todos' },
       { key: 'Fecha inicial', value: filtroFechaInicial.trim() || 'Sin definir' },
       { key: 'Fecha final', value: filtroFechaFinal.trim() || 'Sin definir' },
+      { key: 'Observadas', value: filtroObservadas ? 'Sí' : 'No' },
+      { key: 'Fuera de zona', value: filtroFueraDeZona ? 'Sí' : 'No' },
     ];
     setDetalleBusqueda(detalle);
   };
@@ -100,19 +151,54 @@ export default function AsistenciaScreen() {
             <TextInput
               placeholder="Desde(dd/mm/yyyy)"
               value={filtroFechaInicial}
-              onChangeText={setFiltroFechaInicial}
+              onChangeText={(text) => {
+                setFiltroFechaInicial(text);
+                if (errorFechaInicial) {
+                  setErrorFechaInicial(validarFechaCampo(text));
+                }
+              }}
               style={styles.inputCompacto}
+              error={Boolean(errorFechaInicial)}
               dense
             />
+            {errorFechaInicial ? <RNText style={styles.errorText}>{errorFechaInicial}</RNText> : null}
           </View>
           <View style={styles.fechaInputContainer}>
             <TextInput
               placeholder="Hasta(dd/mm/yyyy)"
               value={filtroFechaFinal}
-              onChangeText={setFiltroFechaFinal}
+              onChangeText={(text) => {
+                setFiltroFechaFinal(text);
+                if (errorFechaFinal) {
+                  setErrorFechaFinal(validarFechaCampo(text));
+                }
+              }}
               style={styles.inputCompacto}
+              error={Boolean(errorFechaFinal)}
               dense
             />
+            {errorFechaFinal ? <RNText style={styles.errorText}>{errorFechaFinal}</RNText> : null}
+          </View>
+        </View>
+
+        <View style={styles.filtrosRow}>
+          <View style={styles.checkboxRow}>
+            <Checkbox
+              status={filtroObservadas ? 'checked' : 'unchecked'}
+              onPress={() => setFiltroObservadas((prev) => !prev)}
+            />
+            <Text onPress={() => setFiltroObservadas((prev) => !prev)} style={styles.checkboxLabel}>
+              Observadas
+            </Text>
+          </View>
+          <View style={styles.checkboxRow}>
+            <Checkbox
+              status={filtroFueraDeZona ? 'checked' : 'unchecked'}
+              onPress={() => setFiltroFueraDeZona((prev) => !prev)}
+            />
+            <Text onPress={() => setFiltroFueraDeZona((prev) => !prev)} style={styles.checkboxLabel}>
+              Fuera de zona
+            </Text>
           </View>
         </View>
       </Card>
@@ -243,5 +329,17 @@ const styles = StyleSheet.create({
   },
   fechaInputContainer: {
     flex: 1,
+  },
+  checkboxRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  checkboxLabel: {
+    color: '#231F36',
+  },
+  errorText: {
+    color: '#B00020',
+    fontSize: 12,
+    marginTop: 2,
   },
 });

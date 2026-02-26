@@ -5,6 +5,7 @@ import LoginScreen from '../screens/LoginScreen';
 import MainMenuScreen from '../screens/MainMenuScreen';
 import AprobarPagosScreen from '../screens/AprobarPagosScreen';
 import ReAprobarPagosScreen from '../screens/ReAprobarPagosScreen';
+import ReAprobarHormigasScreen from '../screens/ReAprobarHormigas';
 import ReportePlanillaScreen from '../screens/ReportePlanillaScreen';
 import ReportePagosScreen from '../screens/ReportePagos';
 import DetallePagosScreen from '../screens/DetallePagos';
@@ -20,6 +21,7 @@ export default function AppNavigator() {
       <Stack.Screen name="MainMenu" component={MainMenuScreen} options={{ title: 'Menú Principal' }} />
       <Stack.Screen name="AprobarPagos" component={AprobarPagosScreen} options={{ title: 'Aprobar Pagos' }} />
       <Stack.Screen name="ReAprobarPagos" component={ReAprobarPagosScreen} />
+      <Stack.Screen name="ReAprobarHormigas" component={ReAprobarHormigasScreen} options={{ title: 'Re-Aprobar Hormigas' }} />
       <Stack.Screen
         name="ReportePlanilla"
         component={ReportePlanillaScreen}
