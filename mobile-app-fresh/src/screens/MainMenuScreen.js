@@ -10,20 +10,12 @@ export default function MainMenuScreen({ navigation }) {
   const OPTIONS = [
     { label: 'Aprobar', onPress: () => { console.log('Botón Aprobar presionado'); navigation.navigate('AprobarPagos'); } },
     { label: 'Re-Aprobar', onPress: () => { console.log('Botón Re-Aprobar presionado'); navigation.navigate('ReAprobarPagos'); } },
-<<<<<<< HEAD
-    { label: 'Reporte', onPress: () => { console.log('Botón Reporte presionado'); navigation.navigate('ReportePagos'); } },
-    { label: 'Asistencia', onPress: () => { console.log('Botón Asistencia presionado'); navigation.navigate('Asistencia'); } },
-    { label: 'Opción 5', onPress: () => {} },
-    { label: 'Opción 6', onPress: () => {} },
-    { label: 'Opción 7', onPress: () => {} },
-=======
-    { label: 'Hormiga', onPress: () => { console.log('Botón Hormiga presionado'); navigation.navigate('ReAprobarHormigas'); } },
-    { label: 'Asistencia', onPress: () => { console.log('Botón Asistencia presionado'); navigation.navigate('Asistencia'); } },
-    { label: 'Orden Compra', onPress: () => { console.log('Botón Orden Compra presionado'); navigation.navigate('Oc'); } },
-    { label: 'Opción 6', onPress: () => {} },
-    { label: 'Reporte', onPress: () => { console.log('Botón Reporte presionado'); navigation.navigate('ReportePagos'); } },
->>>>>>> main
-    { label: 'Opción 8', onPress: () => {} },
+{ label: 'Hormiga', onPress: () => { console.log('Botón Hormiga presionado'); navigation.navigate('ReAprobarHormigas'); } },
+{ label: 'Asistencia', onPress: () => { console.log('Botón Asistencia presionado'); navigation.navigate('Asistencia'); } },
+{ label: 'Orden Compra', onPress: () => { console.log('Botón Orden Compra presionado'); navigation.navigate('Oc'); } },
+{ label: 'Opción 6', onPress: () => {} },
+{ label: 'Reporte', onPress: () => { console.log('Botón Reporte presionado'); navigation.navigate('ReportePagos'); } },
+{ label: 'Opción 8', onPress: () => {} },
   ];
   const handleLogout = () => {
     navigation.replace('Login');
@@ -32,37 +24,18 @@ export default function MainMenuScreen({ navigation }) {
     <View style={styles.container}>
       <Text style={styles.bienvenida}>Bienvenido, {String(nombreEmpleado)}</Text>
       <View style={styles.grid}>
-<<<<<<< HEAD
-        {OPTIONS.slice(0, SEGMENTS).map((opt, idx) => {
-          // El botón 'Asistencia' debe estar activo
-          const isAsistencia = opt.label === 'Asistencia';
-          return (
-            <View key={idx} style={styles.segment}>
-              <Button
-                mode="contained"
-                onPress={opt.onPress}
-                style={styles.menuButton}
-                disabled={!isAsistencia && idx > 1}
-              >
-                {opt.label}
-              </Button>
-            </View>
-          );
-        })}
-=======
-        {OPTIONS.slice(0, SEGMENTS).map((opt, idx) => (
-          <View key={idx} style={styles.segment}>
-            <Button
-              mode="contained"
-              onPress={opt.onPress}
-              style={styles.menuButton}
-              disabled={opt.label.startsWith('Opción')}
-            >
-              {opt.label}
-            </Button>
-          </View>
-        ))}
->>>>>>> main
+{OPTIONS.slice(0, SEGMENTS).map((opt, idx) => (
+  <View key={idx} style={styles.segment}>
+    <Button
+      mode="contained"
+      onPress={opt.onPress}
+      style={styles.menuButton}
+      disabled={opt.label.startsWith('Opción')}
+    >
+      {opt.label}
+    </Button>
+  </View>
+))}
       </View>
       <Button mode="outlined" onPress={handleLogout} style={styles.logoutButton}>
         Salir / Cerrar sesión
