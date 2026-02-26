@@ -17,6 +17,10 @@ jobs:
       - name: Instalar dependencias
         run: npm install
       - name: Copiar fuentes necesarias
+<<<<<<< HEAD
         run: npm run copy-fonts
+=======
+        run: node mobile-app-fresh/scripts/copy-fonts.js
+>>>>>>> main
       - name: Continuar con el build (ejemplo)
         run: echo "Listo para el build de producción"

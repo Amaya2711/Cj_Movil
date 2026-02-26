@@ -7,8 +7,15 @@ import solicitanteRoutes from './routes/solicitanteRoutes.js';
 import datosocRoutes from './routes/datosOc.js';
 import planillaRoutes from './routes/planilla.js';
 import reaprobacionesRoutes from './routes/reaprobaciones.js';
+<<<<<<< HEAD
 import reportesRoutes from './routes/reportes.js';
 import gastosRoutes from './routes/gastos.js';
+=======
+import hormigasRoutes from './routes/hormigas.js';
+import reportesRoutes from './routes/reportes.js';
+import gastosRoutes from './routes/gastos.js';
+import ocRoutes from './routes/oc.js';
+>>>>>>> main
 
 const app = express();
 app.use(cors());
@@ -23,7 +30,14 @@ app.use('/api', planillaRoutes);
 
 // Nueva ruta para reaprobaciones
 app.use('/api/Reaprobaciones', reaprobacionesRoutes);
+<<<<<<< HEAD
 app.use('/api', reportesRoutes);
 app.use('/api', gastosRoutes);
+=======
+app.use('/api/Hormigas', hormigasRoutes);
+app.use('/api', reportesRoutes);
+app.use('/api', gastosRoutes);
+app.use('/api', ocRoutes);
+>>>>>>> main
 
 export default app;

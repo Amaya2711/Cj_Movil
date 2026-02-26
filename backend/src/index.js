@@ -11,7 +11,13 @@ import detallePagosRoutes from './routes/detallePagos.js';
 
 import aprobarPlanillaRoutes from './routes/aprobarPlanilla.js';
 import reaprobacionesRoutes from './routes/reaprobaciones.js';
+<<<<<<< HEAD
 import gastosRoutes from './routes/gastos.js';
+=======
+import hormigasRoutes from './routes/hormigas.js';
+import gastosRoutes from './routes/gastos.js';
+import ocRoutes from './routes/oc.js';
+>>>>>>> main
 
 dotenv.config();
 
@@ -28,10 +34,18 @@ app.use('/api', solicitanteRoutes);
 app.use('/api', datosocRoutes);
 app.use('/api', aprobarPlanillaRoutes);
 app.use('/api', gastosRoutes);
+<<<<<<< HEAD
+=======
+app.use('/api', ocRoutes);
+>>>>>>> main
 app.use('/api/reportes/detalle-pagos', detallePagosRoutes);
 
 // Nueva ruta para reaprobaciones
 app.use('/api/Reaprobaciones', reaprobacionesRoutes);
+<<<<<<< HEAD
+=======
+app.use('/api/Hormigas', hormigasRoutes);
+>>>>>>> main
 
 app.get('/', (req, res) => {
   res.send('API backend funcionando');

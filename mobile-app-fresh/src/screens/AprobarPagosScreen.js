@@ -751,7 +751,11 @@ export default function AprobarPagosScreen() {
                       ipLocalMod = '192.168.0.1';
                     }
                     const seleccionadosData = resultados.filter(item => seleccionados.includes(String(item.Corre)));
+<<<<<<< HEAD
                     let IdEstValue = 1;
+=======
+                    let IdEstValue = accionActual === 'aprobar' ? 10 : 1;
+>>>>>>> main
                     if (accionActual === 'rechazar') IdEstValue = 3;
                     if (accionActual === 'observar') IdEstValue = 2;
                     const montoLimiteSoles = 2000;
@@ -835,6 +839,7 @@ export default function AprobarPagosScreen() {
                     montoPagoFicticio = Number(row.SubPlanilla) + Number(registroOriginal.Subtotal);
                     montoPago = Number(row.SubPlanilla);
                   }
+<<<<<<< HEAD
 
                   // Lógica para mostrar solo la etiqueta de estado de aprobación
                   const tieneFecha = (fecha) => {
@@ -873,6 +878,12 @@ export default function AprobarPagosScreen() {
                       </View>
                       {Object.entries(row)
                         .filter(([key]) => key !== 'IdMoneda' && key !== '' && !['max(c.FechaAprobador1)','max(c.FechaAprobador2)','max(c.FechaAprobador3)','FechaAprobador1','FechaAprobador2','FechaAprobador3'].includes(key))
+=======
+                  return (
+                    <View key={idx} style={{ marginBottom: 12 }}>
+                      {Object.entries(row)
+                        .filter(([key]) => key !== 'IdMoneda')
+>>>>>>> main
                         .map(([key, value]) => {
                           let label = key;
                           if (key === 'idoc') label = 'OC';
@@ -886,8 +897,11 @@ export default function AprobarPagosScreen() {
                             </View>
                           );
                         })}
+<<<<<<< HEAD
                       {/* Mostrar fechas de aprobadores si existen */}
                       {/* Las fechas de aprobadores ya no se muestran */}
+=======
+>>>>>>> main
                       {registroOriginal && (
                         <View>
                           <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'flex-start', marginTop: 8 }}>

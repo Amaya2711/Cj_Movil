@@ -41,10 +41,13 @@ export default function ReAprobarPagosScreen({ navigation }) {
   const [snackbarMsg, setSnackbarMsg] = useState('');
   const [loadingDatosOc, setLoadingDatosOc] = useState(false);
   const [solicitantes, setSolicitantes] = useState([]);
+<<<<<<< HEAD
   // Filtro de proyecto
   const [filtroProyecto, setFiltroProyecto] = useState('');
   const [proyectos, setProyectos] = useState([]);
   const [showProjectSuggestions, setShowProjectSuggestions] = useState(false);
+=======
+>>>>>>> main
 
   const asText = (v) => {
     if (v === null || v === undefined) return '';
@@ -125,6 +128,7 @@ export default function ReAprobarPagosScreen({ navigation }) {
       const data = await getReaprobaciones({});
       setResultados(Array.isArray(data.result) ? data.result : []);
       setResultadosOriginales(Array.isArray(data.result) ? data.result : []);
+<<<<<<< HEAD
       // Extraer proyectos únicos de la búsqueda inicial
       if (Array.isArray(data.result)) {
         const proyectosUnicos = Array.from(new Set(data.result.map(item => item.nombreProyecto || item.Proyecto || ''))).filter(Boolean);
@@ -132,6 +136,8 @@ export default function ReAprobarPagosScreen({ navigation }) {
       } else {
         setProyectos([]);
       }
+=======
+>>>>>>> main
     } catch (error) {
       setResultados([]);
       setResultadosOriginales([]);
@@ -145,6 +151,7 @@ export default function ReAprobarPagosScreen({ navigation }) {
     setSeleccionados([]);
     const seleccionado = solicitantes.find(s => String(s.NombreEmpleado) === filtroSolicitante);
     let idSolicitante = 0;
+<<<<<<< HEAD
     let proyectoValido = '';
     if (filtroProyecto && proyectos.includes(filtroProyecto)) {
       proyectoValido = filtroProyecto;
@@ -152,6 +159,11 @@ export default function ReAprobarPagosScreen({ navigation }) {
     if (seleccionado && seleccionado.IdEmpleado) {
       idSolicitante = seleccionado.IdEmpleado;
     } else if (!proyectoValido) {
+=======
+    if (seleccionado && seleccionado.IdEmpleado) {
+      idSolicitante = seleccionado.IdEmpleado;
+    } else {
+>>>>>>> main
       Alert.alert(
         'Aviso',
         'Solicitante no existe, mostrando todos los datos',
@@ -160,6 +172,7 @@ export default function ReAprobarPagosScreen({ navigation }) {
     }
     try {
       const reaprobaciones = await getReaprobaciones({ IdSolicitante: idSolicitante });
+<<<<<<< HEAD
       let resultadosFiltrados = Array.isArray(reaprobaciones.result) ? reaprobaciones.result : [];
       // Si hay proyecto válido, filtrar por proyecto
       if (proyectoValido) {
@@ -178,6 +191,13 @@ export default function ReAprobarPagosScreen({ navigation }) {
       setResultados([]);
       setResultadosOriginales([]);
       setProyectos([]);
+=======
+      setResultados(Array.isArray(reaprobaciones.result) ? reaprobaciones.result : []);
+      setResultadosOriginales(Array.isArray(reaprobaciones.result) ? reaprobaciones.result : []);
+    } catch (error) {
+      setResultados([]);
+      setResultadosOriginales([]);
+>>>>>>> main
     }
   };
 
@@ -312,13 +332,18 @@ export default function ReAprobarPagosScreen({ navigation }) {
             </View>
             <Button
               mode="contained"
+<<<<<<< HEAD
               onPress={buscar}
+=======
+              onPress={() => navigation.navigate('ReportePagos')}
+>>>>>>> main
               style={styles.searchButton}
               icon="magnify"
               contentStyle={{ flexDirection: 'row-reverse', height: 36 }}
               accessibilityLabel="Buscar"
             />
           </View>
+<<<<<<< HEAD
           <View style={styles.filtrosRow}>
             <View style={{ flex: 1 }}>
               <TextInput
@@ -354,6 +379,8 @@ export default function ReAprobarPagosScreen({ navigation }) {
               )}
             </View>
           </View>
+=======
+>>>>>>> main
           <View style={styles.tabsContainerRow}>
             <Button
               mode={tab === 'todos' ? 'contained' : 'outlined'}
@@ -441,7 +468,11 @@ export default function ReAprobarPagosScreen({ navigation }) {
             renderItem={({ item }) => {
               const uniqueId = String(item.Corre);
               return (
+<<<<<<< HEAD
                 <Card style={{ marginBottom: 4, padding: 8 }}>
+=======
+                <Card style={{ marginBottom: 12, padding: 8 }}>
+>>>>>>> main
                   <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
                     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                       <Checkbox
@@ -486,11 +517,20 @@ export default function ReAprobarPagosScreen({ navigation }) {
                   </View>
                   <View style={[styles.cell, { flexDirection: 'row', alignItems: 'center' }]}> 
                     <View style={{ flexDirection: 'row', alignItems: 'center', marginRight: 12 }}>
+<<<<<<< HEAD
                       <Text style={{ fontSize: 13 }}>{asText(item.FecIngreso)}</Text>
                     </View>
                     <View style={{ flexDirection: 'row', alignItems: 'center', marginRight: 12 }}>
                       <Text style={styles.cellLabel}>Proyecto:</Text>
                       <Text style={{ fontSize: 13 }}>{asText(item.nombreProyecto || item.Proyecto)}</Text>
+=======
+                      <Text style={styles.cellLabel}>Fecha:</Text>
+                      <Text style={{ fontSize: 13 }}>{asText(item.FecIngreso)}</Text>
+                    </View>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', marginRight: 12 }}>
+                      <Text style={styles.cellLabel}>Total:</Text>
+                      <Text style={{ fontSize: 13 }}>{asText(item.Subtotal)} {asText(item.Moneda)}</Text>
+>>>>>>> main
                     </View>
                   </View>
                   <View style={styles.cell}>
@@ -505,6 +545,7 @@ export default function ReAprobarPagosScreen({ navigation }) {
                       <Text style={{ fontSize: 13 }}>{asText(item.Responsable)}</Text>
                     </View>
                   </View>
+<<<<<<< HEAD
                   <View style={styles.cell}>
                     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                       <Text style={{ fontSize: 13, marginRight: 12 }}>{asText(item.Site)}</Text>
@@ -512,6 +553,8 @@ export default function ReAprobarPagosScreen({ navigation }) {
                       <Text style={{ fontSize: 13 }}>{asText(item.Subtotal)} {asText(item.Moneda)}</Text>
                     </View>
                   </View>
+=======
+>>>>>>> main
                   {item.SubOc !== undefined && item.SubOc !== null && item.SubOc !== '' ? (
                     <View style={styles.cell}>
                       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -523,6 +566,7 @@ export default function ReAprobarPagosScreen({ navigation }) {
                   {expandido[uniqueId] ? (
                     <View style={styles.detalleCard}>
                       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+<<<<<<< HEAD
                         <Text style={{ fontSize: 13 }}>{asText(item.FecIngreso)}</Text>
                       </View>
                       <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 2 }}>
@@ -531,6 +575,11 @@ export default function ReAprobarPagosScreen({ navigation }) {
                         <Text style={styles.cellLabel}>Proyecto:</Text>
                         <Text style={{ fontSize: 13 }}>{asText(item.nombreProyecto || item.Proyecto)}</Text>
                       </View>
+=======
+                        <Text style={styles.cellLabel}>Fecha:</Text>
+                        <Text style={{ fontSize: 13 }}>{asText(item.FecIngreso)}</Text>
+                      </View>
+>>>>>>> main
                       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                         <Text style={styles.cellLabel}>Detalle:</Text>
                         <Text style={{ fontSize: 13 }}>{asText(item.Detalle)}</Text>
@@ -543,6 +592,41 @@ export default function ReAprobarPagosScreen({ navigation }) {
                         <Text style={styles.cellLabel}>Comprobante:</Text>
                         <Text style={{ fontSize: 13 }}>{asText(item.Comprobante)}</Text>
                       </View>
+<<<<<<< HEAD
+=======
+                      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        <Text style={styles.cellLabel}>Gestor:</Text>
+                        <Text style={{ fontSize: 13 }}>{asText(item.Gestor)}</Text>
+                      </View>
+                      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        <Text style={styles.cellLabel}>Proyecto:</Text>
+                        <Text style={{ fontSize: 13 }}>{asText(item.nombreProyecto)}</Text>
+                      </View>
+                      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        <Text style={styles.cellLabel}>Site:</Text>
+                        <Text style={{ fontSize: 13 }}>{asText(item.Site)}</Text>
+                      </View>
+                      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        <Text style={styles.cellLabel}>Subtotal:</Text>
+                        <Text style={{ fontSize: 13 }}>{asText(item.Subtotal)}</Text>
+                      </View>
+                      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        <Text style={styles.cellLabel}>IGV:</Text>
+                        <Text style={{ fontSize: 13 }}>{asText(item.IGV)}</Text>
+                      </View>
+                      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        <Text style={styles.cellLabel}>Estado:</Text>
+                        <Text style={{ fontSize: 13 }}>{asText(item.EstadoPla)}</Text>
+                      </View>
+                      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        <Text style={styles.cellLabel}>Observación:</Text>
+                        <Text style={{ fontSize: 13 }}>{asText(item.Observacion)}</Text>
+                      </View>
+                      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        <Text style={[styles.cellLabel, { color: '#7B3FF2', fontWeight: 'bold' }]}>Total del registro:</Text>
+                        <Text style={{ fontSize: 13, color: '#7B3FF2', fontWeight: 'bold' }}>{asText(item.Subtotal)}</Text>
+                      </View>
+>>>>>>> main
                     </View>
                   ) : null}
                 </Card>
@@ -739,6 +823,7 @@ export default function ReAprobarPagosScreen({ navigation }) {
                     montoPagoFicticio = Number(row.SubPlanilla) + Number(registroOriginal.Subtotal);
                     montoPago = Number(row.SubPlanilla);
                   }
+<<<<<<< HEAD
                   // Lógica para mostrar solo la etiqueta de estado de aprobación
                   const tieneFecha = (fecha) => {
                     if (!fecha) return false;
@@ -773,6 +858,12 @@ export default function ReAprobarPagosScreen({ navigation }) {
                       </View>
                       {Object.entries(row)
                         .filter(([key]) => key !== 'IdMoneda' && key !== '' && !['max(c.FechaAprobador1)','max(c.FechaAprobador2)','max(c.FechaAprobador3)','FechaAprobador1','FechaAprobador2','FechaAprobador3'].includes(key))
+=======
+                  return (
+                    <View key={idx} style={{ marginBottom: 12 }}>
+                      {Object.entries(row)
+                        .filter(([key]) => key !== 'IdMoneda')
+>>>>>>> main
                         .map(([key, value]) => {
                           let label = key;
                           if (key === 'idoc') label = 'OC';
