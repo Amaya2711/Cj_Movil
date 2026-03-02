@@ -8,6 +8,7 @@ import aprobacionRoutes from './routes/aprobacion.js';
 import solicitanteRoutes from './routes/solicitanteRoutes.js';
 import datosocRoutes from './routes/datosOc.js';
 import detallePagosRoutes from './routes/detallePagos.js';
+import asistenciaRoutes from './routes/asistencia.js';
 
 import aprobarPlanillaRoutes from './routes/aprobarPlanilla.js';
 import reaprobacionesRoutes from './routes/reaprobaciones.js';
@@ -29,6 +30,7 @@ app.use('/api/aprobaciones', aprobacionRoutes);
 app.use('/api', solicitanteRoutes);
 app.use('/api', datosocRoutes);
 app.use('/api', aprobarPlanillaRoutes);
+app.use('/api', asistenciaRoutes);
 app.use('/api', gastosRoutes);
 app.use('/api', ocRoutes);
 app.use('/api/reportes/detalle-pagos', detallePagosRoutes);

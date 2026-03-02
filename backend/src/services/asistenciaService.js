@@ -49,18 +49,39 @@ export const registerAsistenciaService = async ({ usuarioAct, tipo, lat, lon, ou
   const outOfRangeValue = !!outOfRange;
 
   const executeIngreso = async () => {
-    const request = pool.request();
-    request.input('UsuarioAct', sql.Int, usuarioActNumber);
-    request.input('Comentario', sql.NVarChar(250), comentarioValue);
-    const result = await request.execute('sp_Asistencia_ActualizarEstado');
+    const executeIngresoWithCoords = async () => {
+      const request = pool.request();
+      request.input('UsuarioAct', sql.Int, usuarioActNumber);
+      request.input('Comentario', sql.NVarChar(250), comentarioValue);
+      request.input('Latitud', sql.Decimal(10, 7), latValue);
+      request.input('Longitud', sql.Decimal(10, 7), lonValue);
+      return request.execute('sp_Asistencia_ActualizarEstado');
+    };
+
+    const executeIngresoLegacy = async () => {
+      const request = pool.request();
+      request.input('UsuarioAct', sql.Int, usuarioActNumber);
+      request.input('Comentario', sql.NVarChar(250), comentarioValue);
+      return request.execute('sp_Asistencia_ActualizarEstado');
+    };
+
+    let result;
+    try {
+      result = await executeIngresoWithCoords();
+    } catch (error) {
+      const message = String(error?.message || '');
+      const missingParamError = /too many arguments specified|expects parameter|must declare the scalar variable/i.test(message);
+      if (!missingParamError) throw error;
+      result = await executeIngresoLegacy();
+    }
 
     if (comentarioValue) {
       const syncCommentByDocRequest = pool.request();
       syncCommentByDocRequest.input('UsuarioAct', sql.Int, usuarioActNumber);
       syncCommentByDocRequest.input('Comentario', sql.NVarChar(250), comentarioValue);
       syncCommentByDocRequest.input('TargetDate', sql.Date, targetDate);
-      syncCommentByDocRequest.input('Latitud', sql.Decimal(18, 6), latValue);
-      syncCommentByDocRequest.input('Longitud', sql.Decimal(18, 6), lonValue);
+      syncCommentByDocRequest.input('Latitud', sql.Decimal(10, 7), latValue);
+      syncCommentByDocRequest.input('Longitud', sql.Decimal(10, 7), lonValue);
       await syncCommentByDocRequest.query(`
         DECLARE @Documento VARCHAR(50);
         SELECT @Documento = NroDocumento
@@ -82,8 +103,8 @@ export const registerAsistenciaService = async ({ usuarioAct, tipo, lat, lon, ou
       syncCommentByUserRequest.input('UsuarioAct', sql.Int, usuarioActNumber);
       syncCommentByUserRequest.input('Comentario', sql.NVarChar(250), comentarioValue);
       syncCommentByUserRequest.input('TargetDate', sql.Date, targetDate);
-      syncCommentByUserRequest.input('Latitud', sql.Decimal(18, 6), latValue);
-      syncCommentByUserRequest.input('Longitud', sql.Decimal(18, 6), lonValue);
+      syncCommentByUserRequest.input('Latitud', sql.Decimal(10, 7), latValue);
+      syncCommentByUserRequest.input('Longitud', sql.Decimal(10, 7), lonValue);
       await syncCommentByUserRequest.query(`
         UPDATE a
            SET a.Comentario = @Comentario,
@@ -98,8 +119,8 @@ export const registerAsistenciaService = async ({ usuarioAct, tipo, lat, lon, ou
       syncLatestByDocRequest.input('UsuarioAct', sql.Int, usuarioActNumber);
       syncLatestByDocRequest.input('Comentario', sql.NVarChar(250), comentarioValue);
       syncLatestByDocRequest.input('TargetDate', sql.Date, targetDate);
-      syncLatestByDocRequest.input('Latitud', sql.Decimal(18, 6), latValue);
-      syncLatestByDocRequest.input('Longitud', sql.Decimal(18, 6), lonValue);
+      syncLatestByDocRequest.input('Latitud', sql.Decimal(10, 7), latValue);
+      syncLatestByDocRequest.input('Longitud', sql.Decimal(10, 7), lonValue);
       await syncLatestByDocRequest.query(`
         DECLARE @Documento VARCHAR(50);
         SELECT @Documento = NroDocumento
@@ -159,8 +180,8 @@ export const registerAsistenciaService = async ({ usuarioAct, tipo, lat, lon, ou
     const request = pool.request();
     request.input('UsuarioAct', sql.Int, usuarioActNumber);
     request.input('pEnvio', sql.Int, 2);
-    request.input('LatitudSalida', sql.Decimal(18, 6), latValue);
-    request.input('LongitudSalida', sql.Decimal(18, 6), lonValue);
+    request.input('LatitudSalida', sql.Decimal(10, 7), latValue);
+    request.input('LongitudSalida', sql.Decimal(10, 7), lonValue);
     request.input('EstadoSalida', sql.Int, outOfRangeValue ? 9 : 0);
     return request.execute('sp_Asistencia_Marcar');
   };

@@ -11,6 +11,7 @@ import hormigasRoutes from './routes/hormigas.js';
 import reportesRoutes from './routes/reportes.js';
 import gastosRoutes from './routes/gastos.js';
 import ocRoutes from './routes/oc.js';
+import asistenciaRoutes from './routes/asistencia.js';
 
 const app = express();
 app.use(cors());
@@ -29,5 +30,6 @@ app.use('/api/Hormigas', hormigasRoutes);
 app.use('/api', reportesRoutes);
 app.use('/api', gastosRoutes);
 app.use('/api', ocRoutes);
+app.use('/api', asistenciaRoutes);
 
 export default app;
