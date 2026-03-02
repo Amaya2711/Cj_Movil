@@ -16,11 +16,41 @@ export const getAsistencia = async (req, res) => {
 
 export const registerAsistencia = async (req, res) => {
   try {
-    const { usuarioAct, codEmp, tipo, lat, lon, outOfRange, fechaAsistencia } = req.body || {};
+    const { usuarioAct, codEmp, tipo, outOfRange, fechaAsistencia } = req.body || {};
+    const latRaw = req.body?.lat ?? req.body?.Latitud ?? req.body?.latitude ?? req.body?.coords?.latitude ?? null;
+    const lonRaw = req.body?.lon ?? req.body?.Longitud ?? req.body?.longitude ?? req.body?.coords?.longitude ?? null;
+    const latNumber = latRaw === null || typeof latRaw === 'undefined' || String(latRaw).trim() === ''
+      ? null
+      : Number(latRaw);
+    const lonNumber = lonRaw === null || typeof lonRaw === 'undefined' || String(lonRaw).trim() === ''
+      ? null
+      : Number(lonRaw);
+    const lat = Number.isFinite(latNumber) ? latNumber : null;
+    const lon = Number.isFinite(lonNumber) ? lonNumber : null;
     const comentarioRaw = req.body?.comentario ?? req.body?.Comentario ?? '';
     const tipoValue = String(tipo ?? '').trim().toUpperCase();
     const comentarioValue = String(comentarioRaw ?? '').trim();
-    console.log('[registerAsistencia][BODY]', { usuarioAct, codEmp, tipo, lat, lon, outOfRange, comentarioLength: comentarioValue.length });
+    console.log('[registerAsistencia][BODY]', {
+      usuarioAct,
+      codEmp,
+      tipo,
+      lat,
+      lon,
+      outOfRange,
+      comentarioLength: comentarioValue.length,
+      rawLatKeys: {
+        lat: req.body?.lat,
+        Latitud: req.body?.Latitud,
+        latitude: req.body?.latitude,
+        coordsLatitude: req.body?.coords?.latitude,
+      },
+      rawLonKeys: {
+        lon: req.body?.lon,
+        Longitud: req.body?.Longitud,
+        longitude: req.body?.longitude,
+        coordsLongitude: req.body?.coords?.longitude,
+      },
+    });
     if (String(tipo || '').toUpperCase() === 'SALIDA') {
       console.log('[SALIDA][BODY]', {
         usuarioAct,

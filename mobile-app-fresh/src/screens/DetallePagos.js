@@ -30,6 +30,11 @@ export default function DetallePagosScreen({ route }) {
   const [total, setTotal] = useState(0);
 
   useEffect(() => {
+    setPage(1);
+    setExpandido({});
+  }, [proyecto, JSON.stringify(anos)]);
+
+  useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       setError('');

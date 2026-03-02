@@ -256,7 +256,7 @@ export default function ReportePagosScreen() {
                       } else if (tieneAno) {
                         anosToSend = [row.Ano];
                       }
-                      navigation.navigate('DetallePagos', {
+                      navigation.push('DetallePagos', {
                         proyecto: row.Proyecto,
                         anos: anosToSend,
                       });
