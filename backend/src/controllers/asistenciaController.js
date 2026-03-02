@@ -71,6 +71,8 @@ export const registerAsistencia = async (req, res) => {
       message: firstRow?.Mensaje || 'Registro realizado correctamente',
       result,
       debugPersistedComentario: result?.debugPersistedComentario ?? null,
+      debugPersistedLatitud: result?.debugPersistedLatitud ?? null,
+      debugPersistedLongitud: result?.debugPersistedLongitud ?? null,
       debugPersistedHora: result?.debugPersistedHora ?? null,
       debugPersistedIdEmpleado: result?.debugPersistedIdEmpleado ?? null,
     });
